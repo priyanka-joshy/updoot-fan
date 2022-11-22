@@ -45,7 +45,7 @@ const Create: NextPage = () => {
   const [titleImage, setTitleImage] = useState<File | null>();
   const [supportingMedia, setSupportingMedia] = useState<File | null>();
   return (
-    <div style={{ paddingInline: '4%', paddingTop: 'calc(10vh + 1%)' }}>
+    <div>
       <Text weight={600} size={30}>
         Create Proposal
       </Text>
@@ -89,9 +89,12 @@ const Create: NextPage = () => {
           <Text color="dimmed">
             Request at least one person to sponsor your proposal
           </Text>
-          <Flex gap="md" wrap="wrap" my="xl">
+          <Flex
+            gap="md"
+            my="xl"
+            style={{ overflowX: 'scroll', overflowY: 'hidden' }}>
             {SPONSORS.map((sponsor, index) => (
-              <Sponsor key={index} {...sponsor} />
+              <Sponsor key={index} {...sponsor} outline />
             ))}
             <button
               style={{

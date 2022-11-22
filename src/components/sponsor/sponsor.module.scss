@@ -1,12 +1,13 @@
 .container {
   padding: 2%;
-  width: 25%;
   border: 1px solid #adadad;
   border-radius: 1rem;
 }
 
 .avatar {
   border-radius: 50%;
+  aspect-ratio: 1;
+  object-fit: cover;
   width: 100%;
 }
 

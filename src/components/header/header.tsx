@@ -1,29 +1,33 @@
+import {
+  Header as HeaderMantine,
+  HeaderProps,
+  UnstyledButton,
+} from '@mantine/core';
+import { BiSearch, BiBell, BiWallet } from 'react-icons/bi';
+import { HiOutlineCog } from 'react-icons/hi';
+
 import styles from './header.module.scss';
 import UpdootSVG from '../../assets/updoot.svg';
-import SearchSVG from '../../assets/search.svg';
-import WalletSVG from '../../assets/wallet.svg';
-import BellSVG from '../../assets/bell.svg';
-import SettingsSVG from '../../assets/settings.svg';
 
-const Header = () => {
+const Header = (props: Partial<HeaderProps>) => {
   return (
-    <div className={styles.container}>
+    <HeaderMantine height={70} className={styles.container} {...props}>
       <UpdootSVG className={styles.updoot} />
       <div className={styles.utilContainer}>
-        <button>
-          <SearchSVG />
-        </button>
-        <button>
-          <WalletSVG />
-        </button>
-        <button>
-          <BellSVG />
-        </button>
-        <button>
-          <SettingsSVG />
-        </button>
+        <UnstyledButton>
+          <BiSearch size={'1.5rem'} color="#ffffff" />
+        </UnstyledButton>
+        <UnstyledButton>
+          <BiWallet size={'1.5rem'} color="#ffffff" />
+        </UnstyledButton>
+        <UnstyledButton>
+          <BiBell size={'1.5rem'} color="#ffffff" />
+        </UnstyledButton>
+        <UnstyledButton>
+          <HiOutlineCog size={'1.5rem'} color="#ffffff" />
+        </UnstyledButton>
       </div>
-    </div>
+    </HeaderMantine>
   );
 };
 
