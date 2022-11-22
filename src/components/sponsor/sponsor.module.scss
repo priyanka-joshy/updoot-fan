@@ -1,0 +1,20 @@
+.container {
+  padding: 2%;
+  width: 25%;
+  border: 1px solid #adadad;
+  border-radius: 1rem;
+}
+
+.avatar {
+  border-radius: 50%;
+  width: 100%;
+}
+
+.level {
+  background-color: #333333;
+  border-radius: 0.375rem;
+  color: #ffffff;
+  text-align: center;
+  width: fit-content;
+  padding-inline: 7%;
+}
