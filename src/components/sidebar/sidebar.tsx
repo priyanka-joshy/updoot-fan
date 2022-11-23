@@ -41,7 +41,7 @@ const Sidebar = (props: Partial<NavbarProps>) => {
         <NavLink
           className={[
             styles.navButton,
-            path === 'create' ? styles.selected : '',
+            path === 'proposals' ? styles.selected : '',
           ].join(' ')}
           icon={<FiCompass size={24} />}
           label="Proposals"

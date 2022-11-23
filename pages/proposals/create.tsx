@@ -13,9 +13,9 @@ import { NextPage } from 'next';
 import { useState } from 'react';
 import { IoIosAddCircle, IoIosEye } from 'react-icons/io';
 
-import Dropzone from '../src/components/dropzone';
-import FilePicker from '../src/components/filepicker';
-import Sponsor from '../src/components/sponsor';
+import Dropzone from '../../src/components/dropzone';
+import FilePicker from '../../src/components/filepicker';
+import Sponsor from '../../src/components/sponsor';
 
 const SPONSORS = [
   {
