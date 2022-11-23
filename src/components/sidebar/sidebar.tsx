@@ -21,7 +21,6 @@ const ACCOUNT_INFO = {
 
 const Sidebar = (props: Partial<NavbarProps>) => {
   const path = useRouter().asPath.split('/')[1];
-  console.log(path);
   return (
     <Navbar
       hidden

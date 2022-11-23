@@ -7,6 +7,7 @@ import {
   Stack,
   Text,
   TextInput,
+  UnstyledButton,
 } from '@mantine/core';
 import { NextPage } from 'next';
 import { useState } from 'react';
@@ -96,15 +97,16 @@ const Create: NextPage = () => {
             {SPONSORS.map((sponsor, index) => (
               <Sponsor key={index} {...sponsor} outline />
             ))}
-            <button
+            <UnstyledButton
               style={{
                 flex: 1,
+                padding: '0.375rem',
                 background: 'none',
                 border: '1px dashed #CCCCCC',
                 borderRadius: '1rem',
               }}>
               <IoIosAddCircle size={35} color="#A1A1A1" />
-            </button>
+            </UnstyledButton>
           </Flex>
           <Text weight={600}>Stardust Payment</Text>
           <Text color="dimmed">Uploading a campaign requires Stardust</Text>
