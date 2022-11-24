@@ -7,15 +7,17 @@ import {
   Stack,
   Text,
   TextInput,
+  Title,
   UnstyledButton,
 } from '@mantine/core';
 import { NextPage } from 'next';
 import { useState } from 'react';
 import { IoIosAddCircle, IoIosEye } from 'react-icons/io';
 
+import styles from '../../styles/create.module.scss';
 import Dropzone from '../../src/components/dropzone';
 import FilePicker from '../../src/components/filepicker';
-import Sponsor from '../../src/components/sponsor';
+import Sponsor from '../../src/components/usercard';
 
 const SPONSORS = [
   {
@@ -47,9 +49,7 @@ const Create: NextPage = () => {
   const [supportingMedia, setSupportingMedia] = useState<File | null>();
   return (
     <div>
-      <Text weight={600} size={30}>
-        Create Proposal
-      </Text>
+      <Title order={2}>Create Proposal</Title>
       <Grid>
         <Grid.Col md={6}>
           <TextInput
@@ -90,21 +90,11 @@ const Create: NextPage = () => {
           <Text color="dimmed">
             Request at least one person to sponsor your proposal
           </Text>
-          <Flex
-            gap="md"
-            my="xl"
-            style={{ overflowX: 'scroll', overflowY: 'hidden' }}>
+          <Flex gap="md" className={styles.sponsorContainer}>
             {SPONSORS.map((sponsor, index) => (
               <Sponsor key={index} {...sponsor} outline />
             ))}
-            <UnstyledButton
-              style={{
-                flex: 1,
-                padding: '0.375rem',
-                background: 'none',
-                border: '1px dashed #CCCCCC',
-                borderRadius: '1rem',
-              }}>
+            <UnstyledButton className={styles.addSponsorButton}>
               <IoIosAddCircle size={35} color="#A1A1A1" />
             </UnstyledButton>
           </Flex>
@@ -114,13 +104,7 @@ const Create: NextPage = () => {
             {STARDUST_AMOUNT} Stardust required
           </Text>
 
-          <Stack
-            my="xl"
-            style={{
-              border: '1px solid #CCCCCC',
-              borderRadius: 10,
-              padding: '1rem',
-            }}>
+          <Stack className={styles.tipContainer}>
             <Text>
               The more detailed your proposal is, the fewer STARDUST will be
               needed.

@@ -1,6 +1,6 @@
 import { Flex, Grid, Stack, Text } from '@mantine/core';
 
-import styles from './sponsor.module.scss';
+import styles from './usercard.module.scss';
 
 interface SponsorProps {
   name: string;
