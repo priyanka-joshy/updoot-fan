@@ -1,4 +1,4 @@
-import { Button, Flex, Grid, Stack, Text } from '@mantine/core';
+import { Button, Flex, Grid, Stack, Text, Title } from '@mantine/core';
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import { ParsedUrlQuery } from 'querystring';
 
@@ -32,9 +32,9 @@ const getDateDifference = (expiration: EpochTimeStamp) => {
 const Proposal: NextPage<ProposalStats> = (props) => {
   return (
     <div>
-      <Text weight={600} size={24}>
+      <Title order={2}>
         {props.topic}
-      </Text>
+      </Title>
       <Grid>
         <Grid.Col md={6}>
           <Flex direction="column" h="100%">
@@ -70,9 +70,9 @@ const Proposal: NextPage<ProposalStats> = (props) => {
                 Vote Now
               </Button>
             </Flex>
-            <Text weight={600} size={24}>
+            <Title order={2}>
               {props.title}
-            </Text>
+            </Title>
             <Text
               color="#5C5C5C"
               my="lg"
