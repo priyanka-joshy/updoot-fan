@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-updootfan-dev-143630-authRole",
+      "UnauthRoleArn": "arn:aws:iam::578741260233:role/amplify-updootfan-dev-143630-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::578741260233:role/amplify-updootfan-dev-143630-authRole",
+      "Region": "ap-northeast-2",
+      "DeploymentBucketName": "amplify-updootfan-dev-143630-deployment",
+      "UnauthRoleName": "amplify-updootfan-dev-143630-unauthRole",
+      "StackName": "amplify-updootfan-dev-143630",
+      "StackId": "arn:aws:cloudformation:ap-northeast-2:578741260233:stack/amplify-updootfan-dev-143630/563477e0-6bc2-11ed-bd8b-022e7a19f0de",
+      "AmplifyAppId": "d1xgxm81yzl0ij"
+    },
+    "categories": {
+      "auth": {
+        "updootfanb6522330": {}
+      }
+    }
+  }
+}
