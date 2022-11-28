@@ -1,0 +1,23 @@
+@mixin outline {
+  justify-content: center;
+  border: 1px solid #dfe0eb;
+  border-radius: 0.5rem;
+  padding-block: 1rem;
+}
+
+.outline1 {
+  @include outline();
+  padding-right: 20%;
+  padding-left: 1rem;
+}
+
+.outline2 {
+  @include outline();
+  color: #5c5c5c;
+  padding-inline: 5%;
+}
+
+.table {
+  border-radius: 1rem;
+  border-collapse: separate;
+}

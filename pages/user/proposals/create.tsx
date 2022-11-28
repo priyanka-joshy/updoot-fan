@@ -14,10 +14,11 @@ import { NextPage } from 'next';
 import { useState } from 'react';
 import { IoIosAddCircle, IoIosEye } from 'react-icons/io';
 
-import styles from '../../styles/create.module.scss';
-import Dropzone from '../../src/components/dropzone';
-import FilePicker from '../../src/components/filepicker';
-import Sponsor from '../../src/components/usercard';
+import styles from 'styles/create.module.scss';
+import Dropzone from '@components/dropzone';
+import FilePicker from '@components/filepicker';
+import UserCard from '@components/usercard';
+import { WiStars } from 'react-icons/wi';
 
 const SPONSORS = [
   {
@@ -92,7 +93,7 @@ const Create: NextPage = () => {
           </Text>
           <Flex gap="md" className={styles.sponsorContainer}>
             {SPONSORS.map((sponsor, index) => (
-              <Sponsor key={index} {...sponsor} outline />
+              <UserCard key={index} {...sponsor} outline miw="7rem" />
             ))}
             <UnstyledButton className={styles.addSponsorButton}>
               <IoIosAddCircle size={35} color="#A1A1A1" />
@@ -100,10 +101,12 @@ const Create: NextPage = () => {
           </Flex>
           <Text weight={600}>Stardust Payment</Text>
           <Text color="dimmed">Uploading a campaign requires Stardust</Text>
-          <Text mt="sm" weight={500}>
-            {STARDUST_AMOUNT} Stardust required
-          </Text>
-
+          <Flex align="center" mt="sm">
+            <WiStars size={36} color="#6200FF" />
+            <Text weight={500} align="center">
+              {STARDUST_AMOUNT} Stardust required
+            </Text>
+          </Flex>
           <Stack className={styles.tipContainer}>
             <Text>
               The more detailed your proposal is, the fewer STARDUST will be

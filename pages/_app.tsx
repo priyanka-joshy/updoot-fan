@@ -1,9 +1,9 @@
 import type { AppProps } from 'next/app';
 import { AppShell } from '@mantine/core';
 
-import '../styles/globals.css';
-import Header from '../src/components/header';
-import Sidebar from '../src/components/sidebar';
+import 'styles/globals.css';
+import Header from '@components/header';
+import Sidebar from '@components/sidebar';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

@@ -1,13 +1,12 @@
 import { Button, Flex, Grid, Stack, Text, Title } from '@mantine/core';
+import { Carousel } from '@mantine/carousel';
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import { ParsedUrlQuery } from 'querystring';
 
 import { FiShare, FiHeart, FiUserCheck } from 'react-icons/fi';
 import { BiCommentDetail, BiLike, BiTimeFive } from 'react-icons/bi';
 import { WiStars } from 'react-icons/wi';
-import StatCard from '../../src/components/statcard';
-import { Carousel } from '@mantine/carousel';
-import Image from 'next/image';
+import StatCard from '@components/statcard';
 
 interface Params extends ParsedUrlQuery {
   id: string;
@@ -32,9 +31,7 @@ const getDateDifference = (expiration: EpochTimeStamp) => {
 const Proposal: NextPage<ProposalStats> = (props) => {
   return (
     <div>
-      <Title order={2}>
-        {props.topic}
-      </Title>
+      <Title order={2}>{props.topic}</Title>
       <Grid>
         <Grid.Col md={6}>
           <Flex direction="column" h="100%">
@@ -70,9 +67,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
                 Vote Now
               </Button>
             </Flex>
-            <Title order={2}>
-              {props.title}
-            </Title>
+            <Title order={2}>{props.title}</Title>
             <Text
               color="#5C5C5C"
               my="lg"

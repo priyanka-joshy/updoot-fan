@@ -11,7 +11,7 @@ import {
 } from '@mantine/core';
 import { NextPage } from 'next';
 
-import styles from '../styles/profile.module.scss';
+import styles from 'styles/profile.module.scss';
 
 const Profile: NextPage = () => {
   return (

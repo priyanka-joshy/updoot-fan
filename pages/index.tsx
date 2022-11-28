@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import styles from '../styles/Home.module.css';
+import styles from 'styles/Home.module.css';
 
 // amplify authentication
 import { Amplify } from 'aws-amplify';
@@ -7,8 +7,7 @@ import { withAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import awsExports from '../src/aws-exports';
 Amplify.configure(awsExports);
-import { CognitoUser } from "@aws-amplify/auth";
-
+import { CognitoUser } from '@aws-amplify/auth';
 
 interface UserAttributes {
   sub: string;
@@ -23,11 +22,11 @@ interface CognitoUserExt extends CognitoUser {
 }
 type CognitoSignOut = () => void;
 interface Props {
-  user: CognitoUserExt,
-  signOut: CognitoSignOut
+  user: CognitoUserExt;
+  signOut: CognitoSignOut;
 }
 
-const Home = ({user, signOut}: Props ) => {
+const Home = ({ user, signOut }: Props) => {
   console.log(user.attributes);
 
   return (
