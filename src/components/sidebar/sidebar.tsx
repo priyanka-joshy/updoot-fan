@@ -7,7 +7,8 @@ import {
 } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { FiCompass } from 'react-icons/fi';
-import { HiOutlineUser } from 'react-icons/hi';
+import { HiOutlineUser, HiOutlineLogout } from 'react-icons/hi';
+import { useAuth } from '../../utils/auth/authContext';
 
 import Sponsor from '../sponsor';
 import styles from './sidebar.module.scss';
@@ -21,6 +22,7 @@ const ACCOUNT_INFO = {
 
 const Sidebar = (props: Partial<NavbarProps>) => {
   const path = useRouter().asPath.split('/')[1];
+  const { cognitoLogout } = useAuth();
   return (
     <Navbar
       hidden
@@ -53,6 +55,13 @@ const Sidebar = (props: Partial<NavbarProps>) => {
           ].join(' ')}
           icon={<HiOutlineUser size={24} />}
           label="Profile"
+        />
+        <NavLink
+          className={styles.navButton}
+          mt={200}
+          icon={<HiOutlineLogout size={24} />}
+          label="Sign Out"
+          onClick={()=>cognitoLogout()}
         />
       </Navbar.Section>
     </Navbar>
