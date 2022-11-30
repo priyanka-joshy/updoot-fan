@@ -4,7 +4,7 @@ import UserCard from './usercard/usercard';
 
 interface FinancialRowProps {
   action: string;
-  date: Date;
+  date: EpochTimeStamp;
   amount: number;
   user: {
     name: string;
@@ -15,7 +15,7 @@ interface FinancialRowProps {
 }
 
 const FinancialRow = (props: FinancialRowProps) => {
-  const date = props.date.toDateString();
+  const date = new Date(props.date).toDateString();
   let backgroundColor = '#0FD293';
   if (props.user.level < 10) backgroundColor = '#FF0055';
   else if (props.user.level < 20) backgroundColor = '#6200FF';

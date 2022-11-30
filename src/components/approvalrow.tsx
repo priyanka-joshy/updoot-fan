@@ -4,7 +4,7 @@ import UserCard from './usercard/usercard';
 
 interface ApprovalRowProps {
   comment: string;
-  date: Date;
+  date: EpochTimeStamp;
   reward: number;
   user: {
     name: string;
@@ -14,7 +14,7 @@ interface ApprovalRowProps {
 }
 
 const ApprovalRow = (props: ApprovalRowProps) => {
-  const date = props.date.toDateString();
+  const date = new Date(props.date).toDateString();
   return (
     <tr>
       <td>

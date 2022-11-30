@@ -1,24 +1,11 @@
 import FinancialRow from '@components/financialrow';
 import { Flex, Stack, Table, Text, Title } from '@mantine/core';
-import { NextPage } from 'next';
+import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 import styles from 'styles/financial.module.scss';
 
-const requestGenerators = new Array(20).fill(() => ({
-  action: 'Lorem ipsum...',
-  date: new Date(),
-  amount: Math.floor(Math.random() * 2000 - 1000),
-  user: {
-    name: 'Hua Xin',
-    address: '0xec5A9c67631fD11B46fn633x2d0',
-    avatar:
-      'https://img.freepik.com/free-vector/' +
-      'cute-rabbit-with-duck-working-laptop-' +
-      'cartoon-illustration_56104-471.jpg?w=2000',
-    level: Math.floor(Math.random() * 24 + 1),
-  },
-}));
-
-const Financial: NextPage = () => {
+const Financial: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
+  props
+) => {
   return (
     <Stack>
       <Flex gap="lg">
@@ -59,8 +46,8 @@ const Financial: NextPage = () => {
           </tr>
         </thead>
         <tbody>
-          {requestGenerators.map((generator) => (
-            <FinancialRow {...generator()} />
+          {props.requests.map((request) => (
+            <FinancialRow {...request} />
           ))}
         </tbody>
       </Table>
@@ -68,4 +55,24 @@ const Financial: NextPage = () => {
   );
 };
 
+export const getStaticProps: GetStaticProps<{
+  requests: any[];
+}> = async () => ({
+  props: {
+    requests: new Array(20).fill({}).map(() => ({
+      action: 'Lorem ipsum...',
+      date: Date.now(),
+      amount: Math.floor(Math.random() * 2000 - 1000),
+      user: {
+        name: 'Hua Xin',
+        address: '0xec5A9c67631fD11B46fn633x2d0',
+        avatar:
+          'https://img.freepik.com/free-vector/' +
+          'cute-rabbit-with-duck-working-laptop-' +
+          'cartoon-illustration_56104-471.jpg?w=2000',
+        level: Math.floor(Math.random() * 24 + 1),
+      },
+    })),
+  },
+});
 export default Financial;

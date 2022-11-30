@@ -1,22 +1,10 @@
 import ApprovalRow from '@components/approvalrow';
 import { Button, Flex, Stack, Table } from '@mantine/core';
-import { NextPage } from 'next';
+import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 
-const requestGenerators = new Array(20).fill(() => ({
-  comment: 'Lorem ipsum...',
-  date: new Date(),
-  reward: Math.floor(Math.random() * 100),
-  user: {
-    name: 'Hua Xin',
-    address: '0xec5A9c67631fD11B46fn633x2d0',
-    avatar:
-      'https://img.freepik.com/free-vector/' +
-      'cute-rabbit-with-duck-working-laptop-' +
-      'cartoon-illustration_56104-471.jpg?w=2000',
-  },
-}));
-
-const Approval: NextPage = () => {
+const Approval: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
+  props
+) => {
   return (
     <Stack>
       <Flex gap="lg">
@@ -44,13 +32,33 @@ const Approval: NextPage = () => {
           </tr>
         </thead>
         <tbody>
-          {requestGenerators.map((generator) => (
-            <ApprovalRow {...generator()} />
+          {props.requests.map((request) => (
+            <ApprovalRow {...request} />
           ))}
         </tbody>
       </Table>
     </Stack>
   );
 };
+
+export const getStaticProps: GetStaticProps<{
+  requests: any[];
+}> = async () => ({
+  props: {
+    requests: new Array(20).fill({}).map(() => ({
+      comment: 'Lorem ipsum...',
+      date: Date.now(),
+      reward: Math.floor(Math.random() * 100),
+      user: {
+        name: 'Hua Xin',
+        address: '0xec5A9c67631fD11B46fn633x2d0',
+        avatar:
+          'https://img.freepik.com/free-vector/' +
+          'cute-rabbit-with-duck-working-laptop-' +
+          'cartoon-illustration_56104-471.jpg?w=2000',
+      },
+    })),
+  },
+});
 
 export default Approval;
