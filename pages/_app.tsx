@@ -1,6 +1,7 @@
 import type { AppProps } from 'next/app';
 import { AppShell } from '@mantine/core';
 
+
 import '../styles/_global.scss';
 import Header from '../src/components/header';
 import Sidebar from '../src/components/sidebar';
@@ -8,6 +9,9 @@ import Sidebar from '../src/components/sidebar';
 import { useRouter } from 'next/router';
 import { AuthProvider } from '../src/utils/auth/authContext';
 import { ProtectedPage } from '../src/utils/auth/ProtectedPage';
+
+import Head from 'next/head';
+
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();

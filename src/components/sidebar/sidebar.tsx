@@ -1,16 +1,14 @@
-import {
-  Navbar,
-  NavbarProps,
-  NavLink,
-  Text,
-  UnstyledButton,
-} from '@mantine/core';
+import { Flex, Navbar, NavbarProps, NavLink, Text } from '@mantine/core';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { FiCompass } from 'react-icons/fi';
 import { HiOutlineUser, HiOutlineLogout } from 'react-icons/hi';
+import { WiStars } from 'react-icons/wi';
 import { useAuth } from '../../utils/auth/authContext';
 
-import Sponsor from '../sponsor';
+
+import UserCard from '../usercard';
 import styles from './sidebar.module.scss';
 
 const ACCOUNT_INFO = {
@@ -21,7 +19,8 @@ const ACCOUNT_INFO = {
 };
 
 const Sidebar = (props: Partial<NavbarProps>) => {
-  const path = useRouter().asPath.split('/')[1];
+  const [mode, setMode] = useState<'user' | 'admin'>('user');
+  const path = useRouter().asPath.split('/')[2];
   const { cognitoLogout } = useAuth();
   return (
     <Navbar
@@ -32,30 +31,37 @@ const Sidebar = (props: Partial<NavbarProps>) => {
       pt="md"
       {...props}>
       <Navbar.Section>
-        <Sponsor {...ACCOUNT_INFO} />
+        <UserCard {...ACCOUNT_INFO} />
       </Navbar.Section>
       <Navbar.Section my="md">
-        <Text weight={700} size={24}>
-          99999
-        </Text>
+        <Flex align="center" pos="relative" left="-10%">
+          <WiStars color="#6200FF" size={36} />
+          <Text weight={700} size={24}>
+            99999
+          </Text>
+        </Flex>
       </Navbar.Section>
       <Navbar.Section grow w="100%">
-        <NavLink
-          className={[
-            styles.navButton,
-            path === 'proposals' ? styles.selected : '',
-          ].join(' ')}
-          icon={<FiCompass size={24} />}
-          label="Proposals"
-        />
-        <NavLink
-          className={[
-            styles.navButton,
-            path === 'profile' ? styles.selected : '',
-          ].join(' ')}
-          icon={<HiOutlineUser size={24} />}
-          label="Profile"
-        />
+        <Link href="/user/proposals">
+          <NavLink
+            className={[
+              styles.navButton,
+              path === 'proposals' ? styles.selected : '',
+            ].join(' ')}
+            icon={<FiCompass size={24} />}
+            label="Proposals"
+          />
+        </Link>
+        <Link href="/user/profile">
+          <NavLink
+            className={[
+              styles.navButton,
+              path === 'profile' ? styles.selected : '',
+            ].join(' ')}
+            icon={<HiOutlineUser size={24} />}
+            label="Profile"
+          />
+        </Link>
         <NavLink
           className={styles.navButton}
           mt={200}

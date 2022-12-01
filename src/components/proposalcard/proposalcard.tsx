@@ -21,23 +21,32 @@ const ProposalCard = (props: ProposalCardProps) => {
       <img src={props.src} />
       <Stack px="lg" pb="xs">
         <Text weight={600}>{props.title}</Text>
-        <Flex gap="sm">
+        <Flex gap="sm" style={{ zIndex: 3 }}>
           <UnstyledButton
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
             }}>
             <BiHeart size={24} />
           </UnstyledButton>
-          <UnstyledButton>
+          <UnstyledButton
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
+              e.stopPropagation();
+            }}>
             <BiMessageRounded size={24} />
           </UnstyledButton>
         </Flex>
       </Stack>
       <Flex gap="sm" className={styles.corner}>
-        <UnstyledButton>
+        <UnstyledButton
+          onClick={(e: MouseEvent<HTMLButtonElement>) => {
+            e.stopPropagation();
+          }}>
           <FiBookmark size={20} />
         </UnstyledButton>
-        <UnstyledButton>
+        <UnstyledButton
+          onClick={(e: MouseEvent<HTMLButtonElement>) => {
+            e.stopPropagation();
+          }}>
           <FiShare size={20} />
         </UnstyledButton>
       </Flex>

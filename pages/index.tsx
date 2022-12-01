@@ -17,7 +17,8 @@ const Home = () => {
       </div>
     );
   }
- 
+
+
   return (
     <AuthLayout>
       <Login />

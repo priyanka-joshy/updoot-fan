@@ -1,15 +1,15 @@
-import { Button, Flex, MediaQuery, Stack, Text } from '@mantine/core';
+import { Button, Flex, MediaQuery, Stack, Title } from '@mantine/core';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { BiPlus } from 'react-icons/bi';
-import ProposalCard from '../src/components/proposalcard';
+import ProposalCard from '@components/proposalcard';
 
 const Proposals: NextPage = () => {
   const router = useRouter();
   return (
     <Stack>
       <Flex justify="space-between" align="center">
-        <Text weight={600}>Entertainment 3.0 starts here</Text>
+        <Title order={2}>Entertainment 3.0 starts here</Title>
         <MediaQuery
           smallerThan="xs"
           styles={{
