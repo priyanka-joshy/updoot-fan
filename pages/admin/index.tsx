@@ -170,7 +170,7 @@ const Dashboard: NextPage = () => {
                   styles.statRow +
                   (index === PERFORMERS.length - 1 ? ` ${styles.last}` : '')
                 }>
-                <UserCard {...performer} columns={2} w="10rem" p={0} />
+                <UserCard {...performer} columns={2} w="10rem" />
                 {/*TODO: make that dynamic*/}
                 <Box
                   style={{ background: '#29CC97', borderRadius: 8 }}
