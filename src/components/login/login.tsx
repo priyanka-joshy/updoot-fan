@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useForm } from '@mantine/form';
 import {
+  Anchor,
   Button,
+  Checkbox,
   Container,
   PasswordInput,
   Stack,
@@ -17,6 +19,7 @@ interface SignUpCredentials extends LoginCredentials {
   name: string;
   phone_number: string;
   confirm_password: string;
+  terms_policies: boolean;
 }
 interface ConfirmationCredentials {
   email: string,
@@ -42,7 +45,8 @@ const Login = () => {
       password: '',
       confirm_password: '',
       name: '',
-      phone_number: ''
+      phone_number: '',
+      terms_policies: false
     },
     validate: {
       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
@@ -51,6 +55,7 @@ const Login = () => {
       confirm_password: (value, values) => (value !== values.password ? 'Passwords did not match' : null),
       phone_number: (value) => (value.length >= 8 ? null : 'Invalid telephone number'),
       name: (value) => (value.length > 0 ? null : 'Required'),
+      terms_policies: (value: boolean) => (value ? null : 'Required')
     },
   });
   const confirmHook = useForm<ConfirmationCredentials>({
@@ -147,6 +152,20 @@ const Login = () => {
           <PasswordInput placeholder="Enter Password" {...signupHook.getInputProps('password')} />
           <PasswordInput placeholder="Confirm Password" {...signupHook.getInputProps('confirm_password')} />
           <TextInput placeholder="Phone Number" {...signupHook.getInputProps('phone_number')} />
+          <div>
+            <Checkbox color="dark"
+              label={
+                <>
+                  I agree with{' '}
+                  <Anchor size="sm" href="#" target="_blank" weight={700} color="dark">terms</Anchor>
+                  {' '}and{' '}
+                  <Anchor size="sm" href="#" target="_blank" weight={700} color="dark">policies</Anchor>
+                </>
+              }
+              {...signupHook.getInputProps('terms_policies', { type: 'checkbox' })}
+            />
+            <Text color="red" fz={12}>{signupHook.errors["terms_policies"]}</Text>
+          </div>
           {authError && <Text color="red" fz={14}>{authError}</Text>}
           <Button color="dark" type="submit">
             Sign Up
