@@ -15,6 +15,7 @@
     "@mantine/carousel": "^5.8.2",
     "@mantine/core": "^5.8.2",
     "@mantine/dropzone": "^5.8.2",
+    "@mantine/form": "^5.8.3",
     "@mantine/hooks": "^5.8.2",
     "@mantine/next": "^5.8.2",
     "@svgr/webpack": "^6.5.1",

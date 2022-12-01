@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { FiCompass } from 'react-icons/fi';
-import { HiOutlineUser } from 'react-icons/hi';
+import { HiOutlineUser, HiOutlineLogout } from 'react-icons/hi';
 import { WiStars } from 'react-icons/wi';
+import { useAuth } from '../../utils/auth/authContext';
+
 
 import UserCard from '../userInfo';
 import styles from './styles.module.scss';
@@ -19,6 +21,7 @@ const ACCOUNT_INFO = {
 const SideBar = (props: Partial<NavbarProps>) => {
   const [mode, setMode] = useState<'user' | 'admin'>('user');
   const path = useRouter().asPath.split('/')[2];
+  const { cognitoLogout } = useAuth();
   return (
     <Navbar
       hidden
@@ -59,6 +62,13 @@ const SideBar = (props: Partial<NavbarProps>) => {
             label="Profile"
           />
         </Link>
+        <NavLink
+          className={styles.navButton}
+          mt={200}
+          icon={<HiOutlineLogout size={24} />}
+          label="Sign Out"
+          onClick={()=>cognitoLogout()}
+        />
       </Navbar.Section>
     </Navbar>
   );
