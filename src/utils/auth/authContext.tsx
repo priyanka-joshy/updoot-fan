@@ -29,13 +29,20 @@ interface ConfirmationCredentials {
   email: string,
   code: string
 }
+interface ResetPassword {
+  email: string,
+  code: string,
+  password: string
+}
 interface AuthContextI {
   user: CognitoUserExt | null,
+  authLoading: boolean,
   cognitoLogin: ({ email, password }: LoginCredentials) => Promise<Error | undefined>,
   cognitoLogout: () => Promise<void>,
   cognitoRegister: ({ email, password, name, phone_number }: SignUpCredentials) => Promise<CognitoUser | Error>,
   cognitoConfirmRegistration: ({ email, code }: ConfirmationCredentials) => Promise<any>,
-  authLoading: boolean
+  cognitoForgotPassword: (email: string) =>  Promise<any>
+  cognitoSubmitNewPassword: ({ email, code, password }: ResetPassword) => Promise<string | Error>
 }
 
 // auth context
@@ -122,6 +129,31 @@ const useCognitoAuth = () => {
     }
   }
 
+  const cognitoForgotPassword = async (email: string) => {
+    try {
+      const data = await Auth.forgotPassword(email);
+      return data;
+    } catch (error) {
+      return error as Error;
+    }
+  }
+  const cognitoSubmitNewPassword = async ({email, code, password}: ResetPassword) => {
+    try {
+      const data = await Auth.forgotPasswordSubmit(email, code, password);
+      return data;
+    } catch (error) {
+      return error as Error;
+    }
+  }
 
-  return { user, cognitoLogin, cognitoLogout, cognitoRegister, cognitoConfirmRegistration, authLoading };
+  return { 
+    user, 
+    authLoading,
+    cognitoLogin, 
+    cognitoLogout, 
+    cognitoRegister, 
+    cognitoConfirmRegistration, 
+    cognitoForgotPassword,
+    cognitoSubmitNewPassword
+  };
 }
