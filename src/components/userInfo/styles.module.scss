@@ -8,7 +8,13 @@
   border-radius: 50%;
   aspect-ratio: 1;
   object-fit: cover;
-  width: 100%;
+  width: 70%;
+}
+
+.avatarContainer {
+  align-items: center;
+  justify-content: center;
+  display: flex;
 }
 
 .level {

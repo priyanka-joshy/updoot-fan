@@ -1,8 +1,8 @@
 import { Flex, Grid, GridProps, Stack, Text } from '@mantine/core';
 
-import styles from './usercard.module.scss';
+import styles from './styles.module.scss';
 
-interface UserCardProps {
+interface IProps extends Partial<GridProps> {
   name: string;
   level?: number;
   address?: string;
@@ -10,11 +10,12 @@ interface UserCardProps {
   outline?: boolean;
 }
 
-const UserCard = (props: UserCardProps & Partial<GridProps>) => {
+const UserInfo = (props: IProps) => {
   return (
     <Flex className={props.outline ? styles.container : undefined}>
       <Grid align="center" justify="center" {...props} columns={12}>
         <Grid.Col
+          className={styles.avatarContainer}
           lg={props.outline ? 4 : undefined}
           span={props.columns ? 12 / props.columns : 7}>
           <img src={props.avatar} className={styles.avatar} />
@@ -24,13 +25,13 @@ const UserCard = (props: UserCardProps & Partial<GridProps>) => {
           span={props.columns ? 12 / props.columns : 7}>
           <Stack spacing={0} align={props.outline ? undefined : 'center'}>
             <Text style={{ whiteSpace: 'nowrap' }}>{props.name}</Text>
-            {props.address === undefined ? (
-              <Text className={styles.level}>Lv.{props.level}</Text>
-            ) : (
-              props.address && (
-                <Text className={styles.address}>{props.address}</Text>
-              )
-            )}
+            {props.address === undefined
+              ? props.level && (
+                  <Text className={styles.level}>Lv.{props.level}</Text>
+                )
+              : props.address && (
+                  <Text className={styles.address}>{props.address}</Text>
+                )}
           </Stack>
         </Grid.Col>
       </Grid>
@@ -38,4 +39,4 @@ const UserCard = (props: UserCardProps & Partial<GridProps>) => {
   );
 };
 
-export default UserCard;
+export default UserInfo;

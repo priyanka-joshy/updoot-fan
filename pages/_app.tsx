@@ -1,7 +1,6 @@
 import type { AppProps } from 'next/app';
 import { AppShell } from '@mantine/core';
 
-
 import '../styles/_global.scss';
 import Header from '../src/components/header';
 import Sidebar from '../src/components/sidebar';
@@ -12,26 +11,24 @@ import { ProtectedPage } from '../src/utils/auth/ProtectedPage';
 
 import Head from 'next/head';
 
-
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   return (
     <AuthProvider>
-      {router.pathname === '/' ?
+      {router.pathname === '/' ? (
         <Component {...pageProps} />
-        :
+      ) : (
         <ProtectedPage>
           <AppShell
             padding="md"
             navbarOffsetBreakpoint="sm"
             navbar={<Sidebar />}
-            header={<Header />}
-          >
+            header={<Header />}>
             <Component {...pageProps} />
           </AppShell>
         </ProtectedPage>
-      }
+      )}
     </AuthProvider>
   );
 }

@@ -14,10 +14,10 @@ import { NextPage } from 'next';
 import { useState } from 'react';
 import { IoIosAddCircle, IoIosEye } from 'react-icons/io';
 
-import styles from 'styles/create.module.scss';
+import styles from 'styles/user/proposals/create.module.scss';
 import Dropzone from '@components/dropzone';
-import FilePicker from '@components/filepicker';
-import UserCard from '@components/usercard';
+import FilePicker from '@components/filePicker';
+import UserCard from '@components/userInfo';
 import { WiStars } from 'react-icons/wi';
 
 const SPONSORS = [

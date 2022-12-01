@@ -6,15 +6,15 @@ import {
   Text,
 } from '@mantine/core';
 
-import styles from './filepicker.module.scss';
+import styles from './styles.module.scss';
 
-const FilePicker = (
-  props: Partial<FileButtonProps> & {
-    title?: string;
-    value?: File | null;
-    placeholder: string;
-  }
-) => {
+interface IProps extends Partial<FileButtonProps> {
+  title?: string;
+  value?: File | null;
+  placeholder: string;
+}
+
+const FilePicker = (props: IProps) => {
   const Button = (buttonProps: { onClick: () => void }) => {
     return (
       <Group noWrap>

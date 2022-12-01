@@ -4,15 +4,15 @@ import { MouseEvent } from 'react';
 
 import { BiHeart, BiMessageRounded } from 'react-icons/bi';
 import { FiShare, FiBookmark } from 'react-icons/fi';
-import styles from './proposalcard.module.scss';
+import styles from './styles.module.scss';
 
-interface ProposalCardProps {
+interface IProps {
   id: string;
   src: string;
   title: string;
 }
 
-const ProposalCard = (props: ProposalCardProps) => {
+const ProposalCard = (props: IProps) => {
   const router = useRouter();
   return (
     <Stack

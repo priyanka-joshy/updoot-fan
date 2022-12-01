@@ -11,7 +11,7 @@ import {
 } from '@mantine/core';
 import { NextPage } from 'next';
 
-import styles from 'styles/profile.module.scss';
+import styles from 'styles/user/profile.module.scss';
 
 const Profile: NextPage = () => {
   return (
@@ -36,12 +36,12 @@ const Profile: NextPage = () => {
         </Grid.Col>
         <Grid.Col md={6}>
           <Flex className={styles.outline} align="center" wrap="wrap">
-            <Stack spacing={0}>
+            <Box>
               <Text weight={600}>Stardust Wallet</Text>
               <Text weight={600} size={30}>
                 99999
               </Text>
-            </Stack>
+            </Box>
             <RingProgress
               sections={[
                 { value: 70, color: '#FFD633' },
@@ -52,10 +52,10 @@ const Profile: NextPage = () => {
               <Flex justify="space-between">
                 <Flex gap="md" align="center">
                   <Box bg="#FFD633" className={styles.indicator} />
-                  <Stack spacing={0}>
+                  <Box>
                     <Text weight={600}>Total</Text>
                     <Text color="#616161">70%</Text>
-                  </Stack>
+                  </Box>
                 </Flex>
                 <Text weight={600} size={24}>
                   70000$SD
@@ -64,10 +64,10 @@ const Profile: NextPage = () => {
               <Flex justify="space-between">
                 <Flex gap="md" align="center">
                   <Box bg="#FF3366" className={styles.indicator} />
-                  <Stack spacing={0}>
+                  <Box>
                     <Text weight={600}>Contributed</Text>
                     <Text color="#616161">30%</Text>
-                  </Stack>
+                  </Box>
                 </Flex>
                 <Text weight={600} size={24}>
                   30000$SD

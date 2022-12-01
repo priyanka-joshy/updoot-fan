@@ -6,7 +6,7 @@ import { ParsedUrlQuery } from 'querystring';
 import { FiShare, FiHeart, FiUserCheck } from 'react-icons/fi';
 import { BiCommentDetail, BiLike, BiTimeFive } from 'react-icons/bi';
 import { WiStars } from 'react-icons/wi';
-import StatCard from '@components/statcard';
+import StatCard from '@components/statCard';
 
 interface Params extends ParsedUrlQuery {
   id: string;
@@ -34,7 +34,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
       <Title order={2}>{props.topic}</Title>
       <Grid>
         <Grid.Col md={6}>
-          <Flex direction="column" h="100%">
+          <Stack spacing={0}>
             <Text weight={600} mt="sm">
               Details
             </Text>
@@ -78,20 +78,16 @@ const Proposal: NextPage<ProposalStats> = (props) => {
               }}>
               {props.description}
             </Text>
-            <Flex h={120} justify="space-between">
+            <Flex justify="space-between" h="15vh">
               {['/temp4.png', '/temp5.png'].map((src, _, arr) => (
-                <img
-                  width={`${100 / arr.length - 1}%`}
-                  height="100%"
-                  src={src}
-                />
+                <img width={`${100 / arr.length - 1}%`} src={src} />
               ))}
             </Flex>
             <Carousel
               mt="lg"
-              height={120}
+              height="15vh"
               align="start"
-              slideSize="33.333333%"
+              slideSize="25%"
               slideGap="md"
               loop>
               {[
@@ -107,31 +103,33 @@ const Proposal: NextPage<ProposalStats> = (props) => {
                 </Carousel.Slide>
               ))}
             </Carousel>
-          </Flex>
+          </Stack>
         </Grid.Col>
         <Grid.Col md={2}>
-          <Text weight={600}>Stats</Text>
-          <Stack spacing="lg" mt="lg">
-            <StatCard
-              data={props.stardust}
-              description="Stardust collected"
-              icon={<WiStars size={36} color="#6200FF" />}
-            />
-            <StatCard
-              data={'67%'}
-              description="Approval rate"
-              icon={<BiLike size={30} color="#6200FF" />}
-            />
-            <StatCard
-              data={`${props.votes} users`}
-              description="Proposal sponsors"
-              icon={<FiUserCheck size={30} color="#6200FF" />}
-            />
-            <StatCard
-              data={getDateDifference(props.expiration)}
-              description="End of voting"
-              icon={<BiTimeFive size={30} color="#6200FF" />}
-            />
+          <Stack h="100%" spacing={0}>
+            <Text weight={600}>Stats</Text>
+            <Stack spacing="lg" mt="lg" style={{ flex: 1 }}>
+              <StatCard
+                data={props.stardust}
+                description="Stardust collected"
+                icon={<WiStars size={36} color="#6200FF" />}
+              />
+              <StatCard
+                data={'67%'}
+                description="Approval rate"
+                icon={<BiLike size={30} color="#6200FF" />}
+              />
+              <StatCard
+                data={`${props.votes} users`}
+                description="Proposal sponsors"
+                icon={<FiUserCheck size={30} color="#6200FF" />}
+              />
+              <StatCard
+                data={getDateDifference(props.expiration)}
+                description="End of voting"
+                icon={<BiTimeFive size={30} color="#6200FF" />}
+              />
+            </Stack>
           </Stack>
         </Grid.Col>
         <Grid.Col md={4}></Grid.Col>
