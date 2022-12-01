@@ -1,16 +1,16 @@
-import { Flex, FlexProps, Text } from '@mantine/core';
+import { FlexProps, Text } from '@mantine/core';
 
-import styles from './statcard.module.scss';
+import styles from './styles.module.scss';
 
-interface StatCardProps extends FlexProps {
+interface IProps extends FlexProps {
   data: string | number;
   description: string;
   icon?: JSX.Element;
 }
 
-const StatCard = (props: StatCardProps) => {
+const StatCard = (props: IProps) => {
   return (
-    <Flex className={styles.container} {...props}>
+    <div className={styles.container} {...props}>
       {props.icon}
       <Text weight={600} size={24} align="center">
         {props.data.toString()}
@@ -18,7 +18,7 @@ const StatCard = (props: StatCardProps) => {
       <Text color="#5C5C5C" align="center">
         {props.description}
       </Text>
-    </Flex>
+    </div>
   );
 };
 

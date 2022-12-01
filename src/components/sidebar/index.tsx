@@ -6,8 +6,8 @@ import { FiCompass } from 'react-icons/fi';
 import { HiOutlineUser } from 'react-icons/hi';
 import { WiStars } from 'react-icons/wi';
 
-import UserCard from '../usercard';
-import styles from './sidebar.module.scss';
+import UserCard from '../userInfo';
+import styles from './styles.module.scss';
 
 const ACCOUNT_INFO = {
   name: 'Assan Kozhin',
@@ -16,7 +16,7 @@ const ACCOUNT_INFO = {
     'https://www.cityu.edu.hk/sro/AboutStudentResidence/ResidenceHalls/SR06/SR06_301A_56279462_KOZHIN,Assan.jpg',
 };
 
-const Sidebar = (props: Partial<NavbarProps>) => {
+const SideBar = (props: Partial<NavbarProps>) => {
   const [mode, setMode] = useState<'user' | 'admin'>('user');
   const path = useRouter().asPath.split('/')[2];
   return (
@@ -64,4 +64,4 @@ const Sidebar = (props: Partial<NavbarProps>) => {
   );
 };
 
-export default Sidebar;
+export default SideBar;

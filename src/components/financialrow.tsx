@@ -1,8 +1,8 @@
-import { Flex, Stack, Text } from '@mantine/core';
+import { Flex, Text } from '@mantine/core';
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
-import UserCard from './usercard/usercard';
+import UserCard from './userInfo';
 
-interface FinancialRowProps {
+interface IProps {
   action: string;
   date: EpochTimeStamp;
   amount: number;
@@ -14,7 +14,7 @@ interface FinancialRowProps {
   };
 }
 
-const FinancialRow = (props: FinancialRowProps) => {
+const FinancialRow = (props: IProps) => {
   const date = new Date(props.date).toDateString();
   let backgroundColor = '#0FD293';
   if (props.user.level < 10) backgroundColor = '#FF0055';
@@ -38,7 +38,7 @@ const FinancialRow = (props: FinancialRowProps) => {
       </td>
       <td>{props.action}</td>
       <td>
-        <Stack spacing={0}>
+        <div>
           <Text>
             {date.split(' ').slice(1, 3).join(' ') +
               ', ' +
@@ -52,7 +52,7 @@ const FinancialRow = (props: FinancialRowProps) => {
               .format(new Date())
               .toUpperCase()}
           </Text>
-        </Stack>
+        </div>
       </td>
       <td>
         <Text

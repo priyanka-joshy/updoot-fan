@@ -1,4 +1,4 @@
-import FinancialRow from '@components/financialrow';
+import FinancialRow from '@components/financialRow';
 import { Flex, Stack, Table, Text, Title } from '@mantine/core';
 import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 import styles from 'styles/financial.module.scss';

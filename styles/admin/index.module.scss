@@ -1,0 +1,28 @@
+@mixin outline($color) {
+  border: 1px solid $color;
+  border-radius: 0.5rem;
+}
+
+.container {
+  @include outline(#dfe0eb);
+  min-height: fit-content;
+  min-width: fit-content;
+  @media screen and (max-width: 1111px) {
+    width: 100%;
+  }
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: 3.5rem;
+  width: 100%;
+  padding: 1rem;
+
+  border-bottom: 1px solid #dfe0eb;
+  &.last {
+    border: none;
+  }
+}

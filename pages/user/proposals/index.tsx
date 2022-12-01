@@ -2,7 +2,7 @@ import { Button, Flex, MediaQuery, Stack, Title } from '@mantine/core';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { BiPlus } from 'react-icons/bi';
-import ProposalCard from '@components/proposalcard';
+import ProposalCard from '@components/proposalCard';
 
 const Proposals: NextPage = () => {
   const router = useRouter();
@@ -32,29 +32,19 @@ const Proposals: NextPage = () => {
         </MediaQuery>
       </Flex>
       <Flex gap="sm" style={{ overflowX: 'scroll' }}>
-        <ProposalCard
-          id={'1'}
-          src={'/temp5.png'}
-          title="I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?"
-        />
-        <ProposalCard
-          id={'2'}
-          src={'/temp5.png'}
-          title="I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?"
-        />
-        <ProposalCard
-          id={'3'}
-          src={'/temp5.png'}
-          title="I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?"
-        />
-        <ProposalCard
-          id={'4'}
-          src={'/temp5.png'}
-          title="I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?"
-        />
+        {PROPOSALS.map((proposal) => (
+          <ProposalCard {...proposal} />
+        ))}
       </Flex>
     </Stack>
   );
 };
+
+const PROPOSALS = new Array(4).fill({}).map((_, index) => ({
+  id: index.toString(),
+  src: '/temp5.png',
+  title:
+    "I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?",
+}));
 
 export default Proposals;

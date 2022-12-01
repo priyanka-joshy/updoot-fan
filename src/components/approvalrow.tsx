@@ -1,8 +1,8 @@
 import { Flex, UnstyledButton, Stack, Text } from '@mantine/core';
 import { IoIosCheckmark, IoIosClose } from 'react-icons/io';
-import UserCard from './usercard/usercard';
+import UserCard from './userInfo';
 
-interface ApprovalRowProps {
+interface IProps {
   comment: string;
   date: EpochTimeStamp;
   reward: number;
@@ -13,7 +13,7 @@ interface ApprovalRowProps {
   };
 }
 
-const ApprovalRow = (props: ApprovalRowProps) => {
+const ApprovalRow = (props: IProps) => {
   const date = new Date(props.date).toDateString();
   return (
     <tr>
@@ -32,7 +32,7 @@ const ApprovalRow = (props: ApprovalRowProps) => {
         </Flex>
       </td>
       <td>
-        <Stack spacing={0}>
+        <div>
           <Text>
             {`${date.split(' ').slice(1, 3).join(' ')},
               ${date.split(' ').at(3)}`}
@@ -45,7 +45,7 @@ const ApprovalRow = (props: ApprovalRowProps) => {
               .format(new Date())
               .toUpperCase()}
           </Text>
-        </Stack>
+        </div>
       </td>
       <td>
         <Text weight={600} color="#0FD293">

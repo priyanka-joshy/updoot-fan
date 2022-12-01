@@ -1,4 +1,4 @@
-import ApprovalRow from '@components/approvalrow';
+import ApprovalRow from '@components/approvalRow';
 import { Button, Flex, Stack, Table } from '@mantine/core';
 import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 

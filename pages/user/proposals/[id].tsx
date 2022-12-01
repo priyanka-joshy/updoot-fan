@@ -6,7 +6,7 @@ import { ParsedUrlQuery } from 'querystring';
 import { FiShare, FiHeart, FiUserCheck } from 'react-icons/fi';
 import { BiCommentDetail, BiLike, BiTimeFive } from 'react-icons/bi';
 import { WiStars } from 'react-icons/wi';
-import StatCard from '@components/statcard';
+import StatCard from '@components/statCard';
 
 interface Params extends ParsedUrlQuery {
   id: string;
