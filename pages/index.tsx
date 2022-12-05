@@ -3,6 +3,7 @@ import { Loader } from '@mantine/core';
 import AuthLayout from '../src/components/authLayout';
 import Login from '../src/components/login';
 import { useAuth } from '../src/utils/auth/authContext';
+import handleUserType from 'src/utils/auth/handleUserType';
 
 
 const Home = () => {
@@ -10,7 +11,7 @@ const Home = () => {
   const router = useRouter();
 
   if (authLoading || user) {
-    user && router.push('/proposals');
+    user && router.push(handleUserType(user).dashboardLink);
     return (
       <div className='authLoader'>
         <Loader color="white" size="lg" />
