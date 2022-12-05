@@ -6,6 +6,7 @@ import awsExports from '../../../src/aws-exports';
 import Router from "next/router";
 Amplify.configure(awsExports);
 
+type UserRole = 'fan' | 'staff' | 'superAdmin';
 interface UserAttributes {
   sub: string;
   email: string;
@@ -16,6 +17,14 @@ interface UserAttributes {
 }
 interface CognitoUserExt extends CognitoUser {
   attributes: UserAttributes;
+  signInUserSession: {
+    accessToken: {
+      jwtToken: string,
+      payload: {
+        "cognito:groups": UserRole[] | undefined
+      }
+    }
+  }
 }
 interface LoginCredentials {
   email: string,
@@ -85,7 +94,6 @@ const useCognitoAuth = () => {
     try {
       const user = await Auth.signIn(email, password);
       setUser(user);
-      Router.push('/proposals');
     } catch (error) {
       return error as Error;
     }
