@@ -3,7 +3,7 @@ import { Loader } from '@mantine/core';
 import AuthLayout from '../src/components/authLayout';
 import Login from '../src/components/login';
 import { useAuth } from '../src/utils/auth/authContext';
-import handleUserType from 'src/utils/auth/handleUserType';
+import { handleUserType } from 'src/utils/auth/handleUserAccess';
 
 
 const Home = () => {
