@@ -2,13 +2,7 @@ import { Loader } from "@mantine/core";
 import { useRouter } from "next/router";
 import { ReactNode } from "react"
 import { useAuth } from "./authContext";
-import handleUserType from "./handleUserType";
-type UserRole = 'fan' | 'staff';
-
-const accessRoutes: Record<UserRole, string> = {
-  fan: '/user',
-  staff: '/admin',
-}
+import { handlePageAccess } from "./handleUserAccess";
 
 export const ProtectedPage = ({ children }: { children: ReactNode }) => {
   const { user , authLoading} = useAuth();
@@ -17,13 +11,11 @@ export const ProtectedPage = ({ children }: { children: ReactNode }) => {
   if(!user){
     !authLoading && router.push('/')
   } else {
-    const currentPage = router.pathname;
-    const {group, dashboardLink} = handleUserType(user);
-
-    const hasAccess = currentPage.startsWith(accessRoutes[group]);
-    !hasAccess && router.push(dashboardLink)
-
-    if(hasAccess){
+    const redirectLink = handlePageAccess(router.pathname, user);
+    // Unauthorized - redirect to relevant dashboard
+    redirectLink && router.push(redirectLink)
+    // Authorized
+    if(!redirectLink){
       return <>{children}</>;
     }
   }
