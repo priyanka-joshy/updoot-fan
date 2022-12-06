@@ -3,7 +3,6 @@ import React, { createContext, ReactNode, useContext, useEffect, useState } from
 import { Amplify, Auth } from 'aws-amplify';
 import { CognitoUser } from "@aws-amplify/auth";
 import awsExports from '../../../src/aws-exports';
-import Router from "next/router";
 Amplify.configure(awsExports);
 
 type UserRole = 'fan' | 'staff';
@@ -103,7 +102,6 @@ const useCognitoAuth = () => {
     try {
       await Auth.signOut();
       setUser(null);
-      Router.push('/');
     } catch (error) {
       if (error instanceof Error) {
         console.log(error.message)
