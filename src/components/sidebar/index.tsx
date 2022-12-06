@@ -1,15 +1,26 @@
-import { Flex, Navbar, NavbarProps, NavLink, Text } from '@mantine/core';
+import { Container, Flex, Navbar, NavbarProps, NavLink, Text } from '@mantine/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { FiCompass } from 'react-icons/fi';
-import { HiOutlineUser, HiOutlineLogout } from 'react-icons/hi';
+import { HiOutlineUser, HiOutlineLogout, HiOutlineUserGroup } from 'react-icons/hi';
 import { WiStars } from 'react-icons/wi';
+import { AiOutlinePieChart, AiOutlineEye } from 'react-icons/ai';
+import { IoSettingsOutline } from 'react-icons/io5';
+import { TbCalendarTime } from 'react-icons/tb';
+import { RiChatCheckLine } from 'react-icons/ri';
+import { CiBank } from 'react-icons/ci';
+import { getDashboardType, handleUserType } from 'src/utils/auth/handleUserAccess';
 import { useAuth } from '../../utils/auth/authContext';
 
 import UserCard from '../userInfo';
 import styles from './styles.module.scss';
 
+type UserRole = 'fan' | 'staff';
+interface ISidebarLink {
+  link: string,
+  icon: JSX.Element
+}
 const ACCOUNT_INFO = {
   name: 'Carrie Pan',
   level: 9000,
@@ -18,9 +29,46 @@ const ACCOUNT_INFO = {
 };
 
 const SideBar = (props: Partial<NavbarProps>) => {
-  const [mode, setMode] = useState<'user' | 'admin'>('user');
-  const path = useRouter().asPath.split('/')[2];
-  const { cognitoLogout } = useAuth();
+  const { user, cognitoLogout } = useAuth();
+  if (!user) return null;
+
+  const currentUserGroup = handleUserType(user).group;
+  const [mode, setMode] = useState<UserRole>(currentUserGroup);
+  const router = useRouter();
+  const currentPath = router.pathname;
+  
+  const sidebarData: Record<UserRole, Record<string, ISidebarLink>> = {
+    fan: {
+      'Proposals': {link: '/user/proposals', icon: <FiCompass size={24} />},
+      'Profile': {link: '/user/profile', icon: <HiOutlineUser size={24} />},
+    },
+    staff: {
+      'Overview': {link: '/admin', icon: <AiOutlinePieChart size={24} />},
+      'Campaigns': {link: '', icon: <TbCalendarTime size={24} />},
+      'Approval': {link: '/admin/approval', icon: <RiChatCheckLine size={24} />},
+      'Financial': {link: '/admin/financial', icon: <CiBank size={24} />},
+      'Community': {link: '', icon: <HiOutlineUserGroup size={24} />},
+    }
+  }
+
+  const SidebarLink = ({label, link, icon}:  ISidebarLink & {label: string}) => {
+    return (
+      <Link href={link}>
+        <NavLink
+          className={`${styles.navButton} ${currentPath === link ? styles.selected : ''}`}
+          icon={icon}
+          label={label}
+        />
+      </Link>
+    )
+  }
+
+  const handleSwitchView = () => {
+    const userView = mode === 'staff' ? 'fan' : 'staff';
+    setMode(userView);
+    router.push(getDashboardType(userView));
+  }
+  
   return (
     <Navbar
       hidden
@@ -29,44 +77,49 @@ const SideBar = (props: Partial<NavbarProps>) => {
       className={styles.container}
       pt="md"
       {...props}>
-      <Navbar.Section>
-        <UserCard {...ACCOUNT_INFO} />
-      </Navbar.Section>
-      <Navbar.Section my="md">
-        <Flex align="center" pos="relative" left="-10%">
-          <WiStars color="#6200FF" size={36} />
-          <Text weight={700} size={24}>
-            99999
-          </Text>
-        </Flex>
-      </Navbar.Section>
+      {mode === "fan" &&
+        <>
+          <Navbar.Section>
+            <UserCard {...ACCOUNT_INFO} />
+          </Navbar.Section>
+          <Navbar.Section my="md">
+            <Flex align="center" pos="relative" left="-10%">
+              <WiStars color="#6200FF" size={36} />
+              <Text weight={700} size={24}>
+                99999
+              </Text>
+            </Flex>
+          </Navbar.Section>
+        </>
+      }
       <Navbar.Section grow w="100%">
-        <Link href="/user/proposals">
-          <NavLink
-            className={[
-              styles.navButton,
-              path === 'proposals' ? styles.selected : '',
-            ].join(' ')}
-            icon={<FiCompass size={24} />}
-            label="Proposals"
-          />
-        </Link>
-        <Link href="/user/profile">
-          <NavLink
-            className={[
-              styles.navButton,
-              path === 'profile' ? styles.selected : '',
-            ].join(' ')}
-            icon={<HiOutlineUser size={24} />}
-            label="Profile"
-          />
-        </Link>
+        <Container px={0} mb={currentUserGroup === "fan" && mode === "fan"? 200: 'md'}>
+          {Object.entries(sidebarData[mode]).map(([label, { link, icon }]) => {
+            return <SidebarLink {...{ label, link, icon }} key={label}/>
+          })}
+        </Container>
+
+        {currentUserGroup === 'staff' &&
+          <Container px={0} my={100}>
+            <SidebarLink 
+              label='Settings' 
+              link='' 
+              icon={<IoSettingsOutline size={24} />}
+            />
+            <NavLink
+              className={styles.navButton} 
+              label='Switch View' 
+              icon={<AiOutlineEye size={24} />} 
+              onClick={() => handleSwitchView()} 
+            />
+          </Container>
+        }
+
         <NavLink
           className={styles.navButton}
-          mt={200}
-          icon={<HiOutlineLogout size={24} />}
-          label="Sign Out"
-          onClick={() => cognitoLogout()}
+          label='Sign Out' 
+          icon={<HiOutlineLogout size={24} />} 
+          onClick={() => cognitoLogout()} 
         />
       </Navbar.Section>
     </Navbar>

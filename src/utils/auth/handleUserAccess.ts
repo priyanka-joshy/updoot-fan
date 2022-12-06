@@ -1,5 +1,5 @@
 import { CognitoUser } from "@aws-amplify/auth";
-type UserRole = 'fan' | 'staff' | 'superAdmin';
+type UserRole = 'fan' | 'staff';
 
 interface GroupInfo {
   group: UserRole,
@@ -30,7 +30,10 @@ interface CognitoUserExt extends CognitoUser {
 const userDashboards: Record<UserRole, string> = {
   fan: "/user/proposals",
   staff: "/admin",
-  superAdmin: "/"
+}
+const accessRoutes: Record<UserRole, string[]> = {
+  fan: ['user'],
+  staff: ['admin', 'user'],
 }
 
 const handleUserType = (user: CognitoUserExt): GroupInfo => {
@@ -54,4 +57,20 @@ const handleUserType = (user: CognitoUserExt): GroupInfo => {
   }
 }
 
-export default handleUserType;
+const getDashboardType = (userType: UserRole) => {
+  return userDashboards[userType];
+}
+
+const handlePageAccess = (path: string, user: CognitoUserExt) => {
+  const pageType = (path.split('/'))[1];
+  const { group, dashboardLink } = handleUserType(user);
+
+  const hasAccess = accessRoutes[group].includes(pageType);    
+  return hasAccess? undefined : dashboardLink;
+}
+
+export { 
+  handleUserType,
+  getDashboardType,
+  handlePageAccess
+};
