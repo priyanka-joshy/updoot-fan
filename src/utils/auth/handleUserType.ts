@@ -1,5 +1,5 @@
 import { CognitoUser } from "@aws-amplify/auth";
-type UserRole = 'fan' | 'staff' | 'superAdmin';
+type UserRole = 'fan' | 'staff';
 
 interface GroupInfo {
   group: UserRole,
@@ -30,7 +30,6 @@ interface CognitoUserExt extends CognitoUser {
 const userDashboards: Record<UserRole, string> = {
   fan: "/user/proposals",
   staff: "/admin",
-  superAdmin: "/"
 }
 
 const handleUserType = (user: CognitoUserExt): GroupInfo => {

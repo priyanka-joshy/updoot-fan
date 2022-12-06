@@ -3,12 +3,11 @@ import { useRouter } from "next/router";
 import { ReactNode } from "react"
 import { useAuth } from "./authContext";
 import handleUserType from "./handleUserType";
-type UserRole = 'fan' | 'staff' | 'superAdmin';
+type UserRole = 'fan' | 'staff';
 
 const accessRoutes: Record<UserRole, string> = {
   fan: '/user',
   staff: '/admin',
-  superAdmin: ''
 }
 
 export const ProtectedPage = ({ children }: { children: ReactNode }) => {

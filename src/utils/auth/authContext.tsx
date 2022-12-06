@@ -6,7 +6,7 @@ import awsExports from '../../../src/aws-exports';
 import Router from "next/router";
 Amplify.configure(awsExports);
 
-type UserRole = 'fan' | 'staff' | 'superAdmin';
+type UserRole = 'fan' | 'staff';
 interface UserAttributes {
   sub: string;
   email: string;
