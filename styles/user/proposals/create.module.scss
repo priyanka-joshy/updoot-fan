@@ -1,3 +1,5 @@
+@use 'styles/colors';
+
 .sponsorContainer {
   overflow-x: scroll;
   overflow-y: hidden;
@@ -8,11 +10,11 @@
   flex: 1;
   padding: 0.375rem;
   background: none;
-  border: 1px dashed #cccccc;
+  border: 1px dashed colors.$light-gray;
   border-radius: 1rem;
 }
 .tipContainer {
-  border: 1px solid #cccccc;
+  border: 1px solid colors.$light-gray;
   border-radius: 1rem;
   padding: 1rem;
   margin-block: 1.5rem;
