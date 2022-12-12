@@ -7,7 +7,7 @@ import { BiSearch, BiBell, BiWallet } from 'react-icons/bi';
 import { HiOutlineCog } from 'react-icons/hi';
 
 import styles from './styles.module.scss';
-import UpdootSVG from '../../assets/updoot.svg';
+import UpdootSVG from 'public/updoot.svg';
 
 const Header = (props: Partial<HeaderProps>) => {
   return (
