@@ -1,91 +1,130 @@
 import {
-  Box,
-  Divider,
-  Flex,
-  Grid,
-  Progress,
-  RingProgress,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
+  BodyText,
+  Heading1,
+  Heading4,
+  Subheading1,
+  Subheading3,
+} from '@components/typography';
+import { Flex, Stack, Tabs, UnstyledButton } from '@mantine/core';
 import { NextPage } from 'next';
+import { TbChevronRight } from 'react-icons/tb';
+import { BsStars } from 'react-icons/bs';
 
 import styles from 'styles/user/profile.module.scss';
+import ProposalCard from '@components/proposalCard';
+import VoteRow from '@components/voteRow';
+import { useRouter } from 'next/router';
 
 const Profile: NextPage = () => {
+  const router = useRouter();
   return (
     <div>
-      <Grid>
-        <Grid.Col md={6}>
-          <Title order={2}>Profile</Title>
-          <Text color="#A1A1A1">Manage your assets and activity</Text>
-          <Flex align="flex-end" mt="lg">
-            <img
-              className={styles.avatar}
-              src="https://www.cityu.edu.hk/sro/AboutStudentResidence/ResidenceHalls/SR06/SR06_301A_56279462_KOZHIN,Assan.jpg"
-            />
-            <Stack spacing={5} w="65%">
-              <Text weight={600}>Assan Kozhin</Text>
-              <Stack className={styles.outline}>
-                <Text>Level 99</Text>
-                <Progress color="dark" radius="xl" size="lg" value={70} />
-              </Stack>
-            </Stack>
+      <Flex justify="space-between" wrap="wrap">
+        <div>
+          <Heading1>Profile</Heading1>
+          <Subheading1 color="#A1A1A1">
+            Manage your assets and activity
+          </Subheading1>
+        </div>
+        <Flex align="center" gap="md">
+          <Stack align="end" spacing={0}>
+            <Heading4>John Doe</Heading4>
+            <Subheading1 color="#A1A1A1">
+              Joined: {new Date().toLocaleDateString()}
+            </Subheading1>
+          </Stack>
+          <img
+            className={styles.image}
+            src={
+              'https://img.freepik.com/free-vector/' +
+              'cute-rabbit-with-duck-working-laptop-' +
+              'cartoon-illustration_56104-471.jpg?w=2000'
+            }
+          />
+        </Flex>
+      </Flex>
+      <UnstyledButton
+        className={styles.wallet}
+        onClick={() => router.push('wallet')}>
+        <Stack pr="3rem">
+          <BodyText>Stardust Wallet</BodyText>
+          <Subheading3 color="#6200FF">Wallet ID: F-90d62Biuq524</Subheading3>
+        </Stack>
+        <BsStars size={30} color="#6200FF" />
+        <Heading1> 20000</Heading1>
+        <TbChevronRight size={30} />
+      </UnstyledButton>
+      <Tabs defaultValue="proposals" color="gray">
+        <Tabs.List grow pr="20%" my="xl">
+          <Tabs.Tab value="proposals">
+            <Subheading1>Proposals</Subheading1>
+          </Tabs.Tab>
+          <Tabs.Tab value="drafts">
+            <Subheading1>Drafts</Subheading1>
+          </Tabs.Tab>
+          <Tabs.Tab value="comments">
+            <Subheading1>Comments</Subheading1>
+          </Tabs.Tab>
+          <Tabs.Tab value="votes">
+            <Subheading1>Votes</Subheading1>
+          </Tabs.Tab>
+          <Tabs.Tab value="likes">
+            <Subheading1>Likes</Subheading1>
+          </Tabs.Tab>
+          <Tabs.Tab value="bookmarks">
+            <Subheading1>Bookmarks</Subheading1>
+          </Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value="proposals" pt="xs">
+          <Flex gap="xl" wrap="wrap">
+            {PROPOSALS.map((proposal) => (
+              <ProposalCard {...proposal} />
+            ))}
           </Flex>
-        </Grid.Col>
-        <Grid.Col md={6}>
-          <Flex className={styles.outline} align="center" wrap="wrap">
-            <Box>
-              <Text weight={600}>Stardust Wallet</Text>
-              <Text weight={600} size={30}>
-                99999
-              </Text>
-            </Box>
-            <RingProgress
-              sections={[
-                { value: 70, color: '#FFD633' },
-                { value: 30, color: '#FF3366' },
-              ]}
-            />
-            <Stack spacing={5} style={{ flex: 1 }}>
-              <Flex justify="space-between">
-                <Flex gap="md" align="center">
-                  <Box bg="#FFD633" className={styles.indicator} />
-                  <Box>
-                    <Text weight={600}>Total</Text>
-                    <Text color="#616161">70%</Text>
-                  </Box>
-                </Flex>
-                <Text weight={600} size={24}>
-                  70000$SD
-                </Text>
-              </Flex>
-              <Flex justify="space-between">
-                <Flex gap="md" align="center">
-                  <Box bg="#FF3366" className={styles.indicator} />
-                  <Box>
-                    <Text weight={600}>Contributed</Text>
-                    <Text color="#616161">30%</Text>
-                  </Box>
-                </Flex>
-                <Text weight={600} size={24}>
-                  30000$SD
-                </Text>
-              </Flex>
-            </Stack>
+        </Tabs.Panel>
+        <Tabs.Panel value="drafts" pt="xs">
+          Content
+        </Tabs.Panel>
+        <Tabs.Panel value="comments" pt="xs">
+          Content
+        </Tabs.Panel>
+        <Tabs.Panel value="votes" pt="xs">
+          {VOTES.map((vote) => (
+            <VoteRow {...vote} />
+          ))}
+        </Tabs.Panel>
+        <Tabs.Panel value="likes" pt="xs">
+          <Flex gap="sm" wrap="wrap">
+            {PROPOSALS.map((proposal) => (
+              <ProposalCard {...proposal} />
+            ))}
           </Flex>
-          <Flex className={styles.outline} justify="space-between" mt="sm">
-            <Text weight={600}>Sponsor Request</Text>
-            <Text weight={300} color={'#9FA2B4'}>
-              No pending sponsor projects
-            </Text>
+        </Tabs.Panel>
+        <Tabs.Panel value="bookmarks" pt="xs">
+          <Flex gap="sm" wrap="wrap">
+            {PROPOSALS.map((proposal) => (
+              <ProposalCard {...proposal} />
+            ))}
           </Flex>
-        </Grid.Col>
-      </Grid>
-      <Divider color="#CCCCCC" my="xl" />
+        </Tabs.Panel>
+      </Tabs>
     </div>
   );
 };
+
+const PROPOSALS = new Array(5).fill({}).map((_, index) => ({
+  id: index.toString(),
+  src: '/temp5.png',
+  title:
+    "I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?",
+}));
+
+const VOTES = new Array(3).fill({}).map((_, index) => ({
+  title:
+    'I quoted one of Valtina’s lyric to a merch. Should we have this for the event?',
+  timestamp: Date.now(),
+  amount: -1000,
+  src: '/temp5.png',
+}));
 
 export default Profile;
