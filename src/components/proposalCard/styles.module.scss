@@ -1,5 +1,5 @@
 .container {
-  min-width: 18rem;
+  width: 22rem;
   border: 1px solid #ededed;
   border-radius: 1rem;
   overflow: hidden;
@@ -19,6 +19,10 @@
   }
 }
 
+.image {
+  height: 53%;
+}
+
 .corner {
   position: absolute;
   top: 4%;
@@ -33,4 +37,8 @@
     width: 1.75rem;
     height: 1.75rem;
   }
+}
+
+.bottom {
+  z-index: 3;
 }

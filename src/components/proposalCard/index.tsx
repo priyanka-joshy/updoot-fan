@@ -1,3 +1,4 @@
+import { Subheading3 } from '@components/typography';
 import { Flex, Stack, Text, UnstyledButton } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { MouseEvent } from 'react';
@@ -18,10 +19,10 @@ const ProposalCard = (props: IProps) => {
     <Stack
       className={styles.container}
       onClick={() => router.push(`proposals/${props.id}`)}>
-      <img src={props.src} />
+      <img src={props.src} className={styles.image} />
       <Stack px="lg" pb="xs">
-        <Text weight={600}>{props.title}</Text>
-        <Flex gap="sm" style={{ zIndex: 3 }}>
+        <Subheading3>{props.title}</Subheading3>
+        <Flex gap="sm" className={styles.bottom}>
           <UnstyledButton
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
