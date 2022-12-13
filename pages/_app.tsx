@@ -26,7 +26,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         ) : (
           <ProtectedPage>
             <AppShell
-              padding="md"
+              style={{ paddingLeft: '3rem' }}
               navbarOffsetBreakpoint="sm"
               navbar={<Sidebar />}
               header={<Header />}>

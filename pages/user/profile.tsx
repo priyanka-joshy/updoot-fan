@@ -1,3 +1,10 @@
+import { Flex, Stack, Tabs, UnstyledButton } from '@mantine/core';
+import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import { useRouter } from 'next/router';
+import { TbChevronRight } from 'react-icons/tb';
+import { BsStars } from 'react-icons/bs';
+
+import styles from 'styles/user/profile.module.scss';
 import {
   BodyText,
   Heading1,
@@ -5,17 +12,12 @@ import {
   Subheading1,
   Subheading3,
 } from '@components/typography';
-import { Flex, Stack, Tabs, UnstyledButton } from '@mantine/core';
-import { NextPage } from 'next';
-import { TbChevronRight } from 'react-icons/tb';
-import { BsStars } from 'react-icons/bs';
-
-import styles from 'styles/user/profile.module.scss';
 import ProposalCard from '@components/proposalCard';
 import VoteRow from '@components/voteRow';
-import { useRouter } from 'next/router';
 
-const Profile: NextPage = () => {
+const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
+  props
+) => {
   const router = useRouter();
   return (
     <div>
@@ -77,7 +79,7 @@ const Profile: NextPage = () => {
         </Tabs.List>
         <Tabs.Panel value="proposals" pt="xs">
           <Flex gap="xl" wrap="wrap">
-            {PROPOSALS.map((proposal) => (
+            {props.proposals.map((proposal) => (
               <ProposalCard {...proposal} />
             ))}
           </Flex>
@@ -89,20 +91,20 @@ const Profile: NextPage = () => {
           Content
         </Tabs.Panel>
         <Tabs.Panel value="votes" pt="xs">
-          {VOTES.map((vote) => (
+          {props.votes.map((vote) => (
             <VoteRow {...vote} />
           ))}
         </Tabs.Panel>
         <Tabs.Panel value="likes" pt="xs">
-          <Flex gap="sm" wrap="wrap">
-            {PROPOSALS.map((proposal) => (
+          <Flex gap="xl" wrap="wrap">
+            {props.proposals.map((proposal) => (
               <ProposalCard {...proposal} />
             ))}
           </Flex>
         </Tabs.Panel>
         <Tabs.Panel value="bookmarks" pt="xs">
-          <Flex gap="sm" wrap="wrap">
-            {PROPOSALS.map((proposal) => (
+          <Flex gap="xl" wrap="wrap">
+            {props.proposals.map((proposal) => (
               <ProposalCard {...proposal} />
             ))}
           </Flex>
@@ -112,19 +114,25 @@ const Profile: NextPage = () => {
   );
 };
 
-const PROPOSALS = new Array(5).fill({}).map((_, index) => ({
-  id: index.toString(),
-  src: '/temp5.png',
-  title:
-    "I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?",
-}));
-
-const VOTES = new Array(3).fill({}).map((_, index) => ({
-  title:
-    'I quoted one of Valtina’s lyric to a merch. Should we have this for the event?',
-  timestamp: Date.now(),
-  amount: -1000,
-  src: '/temp5.png',
-}));
+export const getStaticProps: GetStaticProps<{
+  proposals: any[];
+  votes: any[];
+}> = () => ({
+  props: {
+    proposals: new Array(5).fill({}).map((_, index) => ({
+      id: index.toString(),
+      src: '/temp5.png',
+      title:
+        "I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?",
+    })),
+    votes: new Array(3).fill({}).map((_, index) => ({
+      title:
+        "I quoted one of Valtina's lyric to a merch. Should we have this for the event?",
+      timestamp: Date.now(),
+      amount: -1000,
+      src: '/temp5.png',
+    })),
+  },
+});
 
 export default Profile;

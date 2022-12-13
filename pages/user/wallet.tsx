@@ -1,3 +1,9 @@
+import { Stack, Table } from '@mantine/core';
+import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import router from 'next/router';
+import { BsStars } from 'react-icons/bs';
+
+import styles from 'styles/user/wallet.module.scss';
 import TransactionRow from '@components/transactionRow';
 import {
   Heading1,
@@ -5,11 +11,6 @@ import {
   BodyText,
   Subheading3,
 } from '@components/typography';
-import { Stack, Table } from '@mantine/core';
-import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
-import router from 'next/router';
-import { BsStars } from 'react-icons/bs';
-import styles from 'styles/user/wallet.module.scss';
 
 const Wallet: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   props
