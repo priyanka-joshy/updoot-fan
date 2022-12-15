@@ -10,40 +10,19 @@ import {
   Title,
   UnstyledButton,
 } from '@mantine/core';
-import { NextPage } from 'next';
+import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 import { useState } from 'react';
 import { IoIosAddCircle, IoIosEye } from 'react-icons/io';
+import { WiStars } from 'react-icons/wi';
 
 import styles from 'styles/user/proposals/create.module.scss';
 import Dropzone from '@components/dropzone';
 import FilePicker from '@components/filePicker';
 import UserCard from '@components/userInfo';
-import { WiStars } from 'react-icons/wi';
 
-const SPONSORS = [
-  {
-    name: 'Jane Smith',
-    level: 21,
-    avatar:
-      'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Taz-Looney_Tunes.svg/1200px-Taz-Looney_Tunes.svg.png',
-  },
-  {
-    name: 'Paul Leto',
-    level: 23,
-    avatar:
-      'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Taz-Looney_Tunes.svg/1200px-Taz-Looney_Tunes.svg.png',
-  },
-  {
-    name: 'Ann Lee',
-    level: 30,
-    avatar:
-      'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Taz-Looney_Tunes.svg/1200px-Taz-Looney_Tunes.svg.png',
-  },
-];
-
-const STARDUST_AMOUNT = 300;
-
-const Create: NextPage = () => {
+const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
+  props
+) => {
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [titleImage, setTitleImage] = useState<File | null>();
@@ -92,7 +71,7 @@ const Create: NextPage = () => {
             Request at least one person to sponsor your proposal
           </Text>
           <Flex gap="md" className={styles.sponsorContainer}>
-            {SPONSORS.map((sponsor, index) => (
+            {props.sponsors.map((sponsor, index) => (
               <UserCard key={index} {...sponsor} outline miw="7rem" />
             ))}
             <UnstyledButton className={styles.addSponsorButton}>
@@ -104,7 +83,7 @@ const Create: NextPage = () => {
           <Flex align="center" mt="sm">
             <WiStars size={36} color="#6200FF" />
             <Text weight={500} align="center">
-              {STARDUST_AMOUNT} Stardust required
+              {props.stardust} Stardust required
             </Text>
           </Flex>
           <Stack className={styles.tipContainer}>
@@ -128,5 +107,34 @@ const Create: NextPage = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps<{
+  sponsors: any[];
+  stardust: number;
+}> = async () => ({
+  props: {
+    sponsors: [
+      {
+        name: 'Jane Smith',
+        level: 21,
+        avatar:
+          'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Taz-Looney_Tunes.svg/1200px-Taz-Looney_Tunes.svg.png',
+      },
+      {
+        name: 'Paul Leto',
+        level: 23,
+        avatar:
+          'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Taz-Looney_Tunes.svg/1200px-Taz-Looney_Tunes.svg.png',
+      },
+      {
+        name: 'Ann Lee',
+        level: 30,
+        avatar:
+          'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Taz-Looney_Tunes.svg/1200px-Taz-Looney_Tunes.svg.png',
+      },
+    ],
+    stardust: 300,
+  },
+});
 
 export default Create;

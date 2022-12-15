@@ -15,21 +15,27 @@ function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   return (
-    <AuthProvider>
-      {router.pathname === '/' ? (
-        <Component {...pageProps} />
-      ) : (
-        <ProtectedPage>
-          <AppShell
-            padding="md"
-            navbarOffsetBreakpoint="sm"
-            navbar={<Sidebar />}
-            header={<Header />}>
-            <Component {...pageProps} />
-          </AppShell>
-        </ProtectedPage>
-      )}
-    </AuthProvider>
+    <>
+      <Head>
+        <title>Updoot</title>
+        <link rel="shortcut icon" href="/logo.svg" />
+      </Head>
+      <AuthProvider>
+        {router.pathname === '/' ? (
+          <Component {...pageProps} />
+        ) : (
+          <ProtectedPage>
+            <AppShell
+              style={{ paddingLeft: '3rem' }}
+              navbarOffsetBreakpoint="sm"
+              navbar={<Sidebar />}
+              header={<Header />}>
+              <Component {...pageProps} />
+            </AppShell>
+          </ProtectedPage>
+        )}
+      </AuthProvider>
+    </>
   );
 }
 

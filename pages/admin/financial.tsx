@@ -75,4 +75,5 @@ export const getStaticProps: GetStaticProps<{
     })),
   },
 });
+
 export default Financial;
