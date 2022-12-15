@@ -3,7 +3,7 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import UpdootLogo from '../../assets/mainLogo.svg';
+import UpdootLogo from '../../../public/mainLogo.svg';
 import styles from './authLayout.module.scss';
 
 const AuthLayout = (
