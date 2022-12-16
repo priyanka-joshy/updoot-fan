@@ -1,8 +1,5 @@
-import styles from 'styles/user/proposals/id.module.scss';
-
 import { useState } from 'react';
 import {
-  Button as Button_mantine,
   Modal,
   Checkbox,
   Flex,
@@ -11,8 +8,6 @@ import {
   Text,
   Title,
   Textarea,
-  Group,
-  createStyles,
   Anchor,
   UnstyledButton,
 } from '@mantine/core';
@@ -21,10 +16,8 @@ import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import { ParsedUrlQuery } from 'querystring';
 
 import { FiCheckCircle, FiHeart, FiUserCheck } from 'react-icons/fi';
-import { BiCommentDetail, BiLike, BiTimeFive } from 'react-icons/bi';
-import { IoIosArrowBack } from 'react-icons/io';
+import { BiLike, BiTimeFive } from 'react-icons/bi';
 import {
-  TbChevronDownLeft,
   TbChevronLeft,
   TbChevronUp,
   TbHandStop,
@@ -34,13 +27,11 @@ import { WiStars } from 'react-icons/wi';
 import StatCard from '@components/statCard';
 import {
   BodyText,
-  Heading1,
   Heading3,
   Subheading1,
   Subheading2,
 } from '@components/typography';
 import Button from '@components/button';
-import { C } from 'chart.js/dist/chunks/helpers.core';
 
 interface Params extends ParsedUrlQuery {
   id: string;
@@ -153,7 +144,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
               Back
             </UnstyledButton>
             <img
-              style={{ height: '230px', width: '100%', borderRadius: '10px' }}
+              style={{ height: '15rem', width: '100%', borderRadius: '10px' }}
               src={'/temp5.png'}
             />
             <Flex justify={'space-between'}>
@@ -247,7 +238,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
         </Grid.Col>
         <Grid.Col
           md={4}
-          style={{ position: 'fixed', right: 20, top: '7.5rem' }}>
+          style={{ position: 'fixed', right: '2rem', top: '7.5rem' }}>
           <Stack h="100%" spacing={0}>
             <Stack spacing="lg" mt="lg" style={{ flex: 1 }}>
               <Grid grow gutter="sm">
@@ -290,7 +281,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
                 </Grid.Col>
               </Grid>
 
-              <Stack style={{ paddingTop: '30px' }} spacing="lg">
+              <Stack style={{ paddingTop: '2rem' }} spacing="lg">
                 <div
                   style={{
                     display: 'grid',
