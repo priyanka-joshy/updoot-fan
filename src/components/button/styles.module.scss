@@ -5,13 +5,6 @@
   border-radius: 2.5rem;
   padding: $padding-inline $padding-block;
   transition: all 0.3s ease;
-  & > * {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-  }
   &:hover {
     cursor: pointer;
   }
