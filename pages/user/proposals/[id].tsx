@@ -19,6 +19,7 @@ import { FiCheckCircle, FiHeart, FiUserCheck } from 'react-icons/fi';
 import { BiLike, BiTimeFive } from 'react-icons/bi';
 import {
   TbChevronLeft,
+  TbChevronRight,
   TbChevronUp,
   TbHandStop,
   TbShare,
@@ -130,7 +131,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
       </Modal>
       <Grid gutter={'xl'} style={{ padding: '1rem' }}>
         <Grid.Col md={7} style={{ marginRight: '2rem' }}>
-          <Stack spacing={'sm'}>
+          <Stack spacing={'30px'}>
             <UnstyledButton
               style={{
                 marginRight: 'auto',
@@ -152,33 +153,42 @@ const Proposal: NextPage<ProposalStats> = (props) => {
               <Subheading1 color="#A1A1A1">Ends in 3 Days</Subheading1>
             </Flex>
             <Title order={2}>{props.title}</Title>
-            <Text
+            <BodyText
               color="#5C5C5C"
-              my="lg"
               style={{
                 borderRadius: 10,
                 textAlign: 'left',
               }}>
               {props.description}
-            </Text>
+            </BodyText>
 
             <Carousel
               mt="lg"
               height="15vh"
               align="start"
               slideSize="25%"
-              slideGap="md"
-              loop>
-              {[
-                '/temp1.png',
-                '/temp2.png',
-                '/temp3.png',
-                '/temp4.png',
-                '/temp5.png',
-              ].map((src) => (
+              controlsOffset={'xs'}
+              slideGap={'1px'}
+              previousControlIcon={<TbChevronLeft size={16} />}
+              loop={true}>
+              <Carousel.Slide size="50%">
+                <img
+                  height="100%"
+                  src={'/temp5.png'}
+                  style={{ width: '100%', borderRadius: '10px' }}
+                />
+              </Carousel.Slide>
+              {['/temp1.png', '/temp2.png', '/temp3.png'].map((src) => (
                 <Carousel.Slide
                   style={{ justifyContent: 'center', display: 'flex' }}>
-                  <img height="100%" src={src} style={{ aspectRatio: 1 }} />
+                  <img
+                    height="100%"
+                    style={{
+                      border: '1px solid #CCCCCC',
+                      borderRadius: '10px',
+                    }}
+                    src={src}
+                  />
                 </Carousel.Slide>
               ))}
             </Carousel>
