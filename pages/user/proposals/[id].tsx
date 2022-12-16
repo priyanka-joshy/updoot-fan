@@ -1,15 +1,48 @@
-import { Button, Flex, Grid, Stack, Text, Title } from '@mantine/core';
+import { useState } from 'react';
+import {
+  Modal,
+  Checkbox,
+  Flex,
+  Grid,
+  Stack,
+  Text,
+  Title,
+  Textarea,
+  Anchor,
+  UnstyledButton,
+} from '@mantine/core';
 import { Carousel } from '@mantine/carousel';
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import { ParsedUrlQuery } from 'querystring';
 
-import { FiShare, FiHeart, FiUserCheck } from 'react-icons/fi';
-import { BiCommentDetail, BiLike, BiTimeFive } from 'react-icons/bi';
+import { FiCheckCircle, FiHeart, FiUserCheck } from 'react-icons/fi';
+import { BiLike, BiTimeFive } from 'react-icons/bi';
+import {
+  TbChevronLeft,
+  TbChevronRight,
+  TbChevronUp,
+  TbHandStop,
+  TbShare,
+} from 'react-icons/tb';
 import { WiStars } from 'react-icons/wi';
 import StatCard from '@components/statCard';
+import {
+  BodyText,
+  Heading3,
+  Subheading1,
+  Subheading2,
+} from '@components/typography';
+import Button from '@components/button';
 
 interface Params extends ParsedUrlQuery {
   id: string;
+}
+
+interface Comment {
+  image: string;
+  name: string;
+  timestamp: EpochTimeStamp;
+  comment: string;
 }
 
 interface ProposalStats {
@@ -21,6 +54,7 @@ interface ProposalStats {
   votes: number;
   stardust: number;
   expiration: EpochTimeStamp;
+  comments: Array<Comment>;
 }
 
 const getDateDifference = (expiration: EpochTimeStamp) => {
@@ -29,111 +63,288 @@ const getDateDifference = (expiration: EpochTimeStamp) => {
 };
 
 const Proposal: NextPage<ProposalStats> = (props) => {
+  const [modalOpened, setModalOpened] = useState(false);
+
   return (
     <div>
-      <Title order={2}>{props.topic}</Title>
-      <Grid>
-        <Grid.Col md={6}>
-          <Stack spacing={0}>
-            <Text weight={600} mt="sm">
-              Details
-            </Text>
-            <Flex gap="sm" my="lg" wrap="wrap">
-              <Button
-                w="8.5rem"
-                variant="outline"
-                color="red"
-                leftIcon={<FiHeart fill="currentColor" />}
-                radius="lg">
-                {props.likes} Likes
-              </Button>
-              <Button
-                w="8.5rem"
-                variant="outline"
-                color="dark"
-                leftIcon={<FiShare />}
-                radius="lg">
-                {props.shares} Shares
-              </Button>
-              <Button
-                w="8.5rem"
-                variant="outline"
-                color="dark"
-                leftIcon={<BiCommentDetail />}
-                radius="lg">
-                {props.votes} Votes
-              </Button>
-              <Button w="8.5rem" color="dark" radius="lg">
-                Vote Now
-              </Button>
+      <Modal
+        centered={true}
+        radius={'xl'}
+        opened={modalOpened}
+        onClose={() => setModalOpened(false)}>
+        <Stack align={'center'}>
+          <TbHandStop color="#6200FF" size={36} />
+          <Heading3 style={{ fontWeight: '600' }}>Cast your vote!</Heading3>
+          <Subheading1>Votes require Stardust to be valid</Subheading1>
+          <Stack
+            spacing={'sm'}
+            style={{
+              borderRadius: '1rem',
+              border: '1px solid #DFE0EB',
+              padding: '1rem',
+              marginTop: '2.5rem',
+              width: '90%',
+            }}>
+            <Flex justify={'space-between'}>
+              <BodyText>Stardust Balance</BodyText>
+              <BodyText>{props.stardust}SD</BodyText>
+            </Flex>
+            <Flex justify={'space-between'}>
+              <BodyText>Payment amount</BodyText>
+              <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
+            </Flex>
+            <Flex
+              justify={'space-between'}
+              style={{ borderTop: '1px solid #DFE0EB', paddingTop: '1rem' }}>
+              <BodyText>Balance after payment</BodyText>
+              <BodyText>{props.stardust - 1000}SD</BodyText>
+            </Flex>
+          </Stack>
+          <Stack style={{ width: '80%', padding: '1rem 0' }}>
+            <Subheading1>Confirm Payment</Subheading1>
+            <Checkbox
+              color="violet"
+              radius={'xl'}
+              label={
+                <>
+                  By clicking “Vote now”, you confirm that you have read,
+                  understand, and accepted our{' '}
+                  <Anchor
+                    size="sm"
+                    href="https://mantine.dev"
+                    target="_blank"
+                    color="black"
+                    underline={true}>
+                    Terms of Use
+                  </Anchor>
+                  .
+                </>
+              }
+            />
+          </Stack>
+
+          <Button style={{ width: '90%', margin: '1rem' }}>
+            <TbHandStop />
+            Vote Now
+          </Button>
+        </Stack>
+      </Modal>
+      <Grid gutter={'xl'} style={{ padding: '1rem' }}>
+        <Grid.Col md={7} style={{ marginRight: '2rem' }}>
+          <Stack spacing={'30px'}>
+            <UnstyledButton
+              style={{
+                marginRight: 'auto',
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}>
+              <TbChevronLeft size={20} />
+              Back
+            </UnstyledButton>
+            <img
+              style={{ height: '15rem', width: '100%', borderRadius: '10px' }}
+              src={'/temp5.png'}
+            />
+            <Flex justify={'space-between'}>
+              <Subheading1>Proposals</Subheading1>
+              <Subheading1 color="#A1A1A1">Ends in 3 Days</Subheading1>
             </Flex>
             <Title order={2}>{props.title}</Title>
-            <Text
+            <BodyText
               color="#5C5C5C"
-              my="lg"
               style={{
-                border: '1px solid #CCCCCC',
                 borderRadius: 10,
-                padding: '1rem',
+                textAlign: 'left',
               }}>
               {props.description}
-            </Text>
-            <Flex justify="space-between" h="15vh">
-              {['/temp4.png', '/temp5.png'].map((src, _, arr) => (
-                <img width={`${100 / arr.length - 1}%`} src={src} />
-              ))}
-            </Flex>
+            </BodyText>
+
             <Carousel
               mt="lg"
               height="15vh"
               align="start"
               slideSize="25%"
-              slideGap="md"
-              loop>
-              {[
-                '/temp1.png',
-                '/temp2.png',
-                '/temp3.png',
-                '/temp4.png',
-                '/temp5.png',
-              ].map((src) => (
+              controlsOffset={'xs'}
+              slideGap={'1px'}
+              previousControlIcon={<TbChevronLeft size={16} />}
+              loop={true}>
+              <Carousel.Slide size="50%">
+                <img
+                  height="100%"
+                  src={'/temp5.png'}
+                  style={{ width: '100%', borderRadius: '10px' }}
+                />
+              </Carousel.Slide>
+              {['/temp1.png', '/temp2.png', '/temp3.png'].map((src) => (
                 <Carousel.Slide
                   style={{ justifyContent: 'center', display: 'flex' }}>
-                  <img height="100%" src={src} style={{ aspectRatio: 1 }} />
+                  <img
+                    height="100%"
+                    style={{
+                      border: '1px solid #CCCCCC',
+                      borderRadius: '10px',
+                    }}
+                    src={src}
+                  />
                 </Carousel.Slide>
               ))}
             </Carousel>
+            <div style={{ paddingTop: '5rem' }}>
+              <hr
+                style={{
+                  borderTop: '0.5px solid #A1A1A1',
+                }}
+              />
+            </div>
+            <Stack spacing={'lg'} style={{ padding: '0 2rem' }}>
+              <Flex justify={'space-between'}>
+                <Subheading1>Join the Conversation!</Subheading1>
+                <Subheading1 color="#A1A1A1">60 Comments</Subheading1>
+              </Flex>
+              <Flex align={'center'} gap="sm">
+                <img
+                  style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                  src="/temp2.png"
+                />
+                <Subheading2>Johndoe1234</Subheading2>
+              </Flex>
+              <Textarea
+                radius="md"
+                placeholder="What do you think?"
+                size="xl"
+              />
+              <Button
+                type="secondary"
+                color="black"
+                style={{
+                  marginLeft: 'auto',
+                  marginRight: '0',
+                }}>
+                Comment
+              </Button>
+
+              {props.comments.map((item) => (
+                <Stack spacing={'sm'} style={{ marginBottom: '1rem' }}>
+                  <Flex align={'center'} gap="sm">
+                    <img
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                      }}
+                      src={item.image}
+                    />
+                    <Subheading2>{item.name}</Subheading2>
+                    <BodyText color="#CCCCCC">{item.timestamp}</BodyText>
+                  </Flex>
+                  <BodyText>{item.comment}</BodyText>
+                </Stack>
+              ))}
+            </Stack>
           </Stack>
         </Grid.Col>
-        <Grid.Col md={2}>
+        <Grid.Col
+          md={4}
+          style={{ position: 'fixed', right: '2rem', top: '7.5rem' }}>
           <Stack h="100%" spacing={0}>
-            <Text weight={600}>Stats</Text>
             <Stack spacing="lg" mt="lg" style={{ flex: 1 }}>
-              <StatCard
-                data={props.stardust}
-                description="Stardust collected"
-                icon={<WiStars size={36} color="#6200FF" />}
-              />
-              <StatCard
-                data={'67%'}
-                description="Approval rate"
-                icon={<BiLike size={30} color="#6200FF" />}
-              />
-              <StatCard
-                data={`${props.votes} users`}
-                description="Proposal sponsors"
-                icon={<FiUserCheck size={30} color="#6200FF" />}
-              />
-              <StatCard
-                data={getDateDifference(props.expiration)}
-                description="End of voting"
-                icon={<BiTimeFive size={30} color="#6200FF" />}
-              />
+              <Grid grow gutter="sm">
+                <Grid.Col span={6}>
+                  <StatCard
+                    data={props.stardust}
+                    description="Collected Stardust"
+                    icon={<WiStars size={36} color="#6200FF" />}
+                  />
+                </Grid.Col>
+                <Grid.Col span={6}>
+                  <StatCard
+                    data={'67%'}
+                    description="Approval Rate"
+                    icon={<BiLike size={36} color="#6200FF" />}
+                  />
+                </Grid.Col>
+                <Grid.Col span={6}>
+                  <StatCard
+                    data={410}
+                    description="Proposal Sponsors"
+                    icon={<FiUserCheck size={36} color="#6200FF" />}
+                  />
+                </Grid.Col>
+                <Grid.Col span={6}>
+                  <StatCard
+                    data={'D-3'}
+                    description={`${getDateDifference(
+                      1671069695
+                    )} left to vote`}
+                    icon={<BiTimeFive size={36} color="#6200FF" />}
+                  />
+                </Grid.Col>
+                <Grid.Col span={12}>
+                  <StatCard
+                    data={`${props.votes} users`}
+                    description="Users have voted"
+                    icon={<FiCheckCircle size={30} color="#6200FF" />}
+                  />
+                </Grid.Col>
+              </Grid>
+
+              <Stack style={{ paddingTop: '2rem' }} spacing="lg">
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    width: '100%',
+                    gap: '1rem',
+                  }}>
+                  <Button
+                    color="black"
+                    type="secondary"
+                    style={{
+                      width: '100%',
+                    }}>
+                    <FiHeart />
+                    Like
+                  </Button>
+                  <Button
+                    color="black"
+                    type="secondary"
+                    style={{
+                      width: '100%',
+                    }}>
+                    <TbShare />
+                    Share
+                  </Button>
+                </div>
+                <Button
+                  size="lg"
+                  style={{
+                    width: '100%',
+                    marginTop: '2rem',
+                  }}
+                  onClick={() => setModalOpened(true)}>
+                  <TbHandStop /> Vote Now
+                </Button>
+              </Stack>
             </Stack>
           </Stack>
         </Grid.Col>
         <Grid.Col md={4}></Grid.Col>
       </Grid>
+      <UnstyledButton
+        style={{
+          margin: 'auto',
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '0.5rem',
+        }}>
+        <TbChevronUp size={25} />
+        Back
+      </UnstyledButton>
     </div>
   );
 };
@@ -163,6 +374,46 @@ export const getStaticProps: GetStaticProps<ProposalStats, Params> = async (
       votes: 410,
       stardust: 80000,
       expiration: Date.now() + 1e7,
+      comments: [
+        {
+          image: '/temp1.png',
+          name: 'JaneSmith',
+          timestamp: '1671157970',
+          comment:
+            'Overall it looks incredible. You’ve nailed the design!! I think it fits perfectly with RAMENGVRL’s image 🔥 Let’s make it real folks!',
+        },
+        {
+          image: '/temp2.png',
+          name: 'Paul Leto',
+          timestamp: '1671157970',
+          comment: 'Nice design - would love to see it come to life 😎',
+        },
+        {
+          image: '/temp3.png',
+          name: 'ann_lee',
+          timestamp: '1671157970',
+          comment: 'Love the colors and the font!! Well done 👍',
+        },
+        {
+          image: '/temp1.png',
+          name: 'JaneSmith',
+          timestamp: '1671157970',
+          comment:
+            'Overall it looks incredible. You’ve nailed the design!! I think it fits perfectly with RAMENGVRL’s image 🔥 Let’s make it real folks!',
+        },
+        {
+          image: '/temp2.png',
+          name: 'Paul Leto',
+          timestamp: '1671157970',
+          comment: 'Nice design - would love to see it come to life 😎',
+        },
+        {
+          image: '/temp3.png',
+          name: 'ann_lee',
+          timestamp: '1671157970',
+          comment: 'Love the colors and the font!! Well done 👍',
+        },
+      ],
     },
   };
 };
