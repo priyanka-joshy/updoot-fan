@@ -5,7 +5,6 @@ import {
   Flex,
   Grid,
   Stack,
-  Text,
   Title,
   Textarea,
   Anchor,
@@ -19,7 +18,6 @@ import { FiCheckCircle, FiHeart, FiUserCheck } from 'react-icons/fi';
 import { BiLike, BiTimeFive } from 'react-icons/bi';
 import {
   TbChevronLeft,
-  TbChevronRight,
   TbChevronUp,
   TbHandStop,
   TbShare,
@@ -33,6 +31,7 @@ import {
   Subheading2,
 } from '@components/typography';
 import Button from '@components/button';
+import Dropdown from '@components/dropdown';
 
 interface Params extends ParsedUrlQuery {
   id: string;
@@ -54,7 +53,7 @@ interface ProposalStats {
   votes: number;
   stardust: number;
   expiration: EpochTimeStamp;
-  comments: Array<Comment>;
+  comments: Comment[];
 }
 
 const getDateDifference = (expiration: EpochTimeStamp) => {
@@ -131,7 +130,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
       </Modal>
       <Grid gutter={'xl'} style={{ padding: '1rem' }}>
         <Grid.Col md={7} style={{ marginRight: '2rem' }}>
-          <Stack spacing={'30px'}>
+          <Stack spacing={30}>
             <UnstyledButton
               style={{
                 marginRight: 'auto',
@@ -168,7 +167,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
               align="start"
               slideSize="25%"
               controlsOffset={'xs'}
-              slideGap={'1px'}
+              slideGap={1}
               previousControlIcon={<TbChevronLeft size={16} />}
               loop={true}>
               <Carousel.Slide size="50%">
@@ -378,39 +377,39 @@ export const getStaticProps: GetStaticProps<ProposalStats, Params> = async (
         {
           image: '/temp1.png',
           name: 'JaneSmith',
-          timestamp: '1671157970',
+          timestamp: 1671157970,
           comment:
             'Overall it looks incredible. You’ve nailed the design!! I think it fits perfectly with RAMENGVRL’s image 🔥 Let’s make it real folks!',
         },
         {
           image: '/temp2.png',
           name: 'Paul Leto',
-          timestamp: '1671157970',
+          timestamp: 1671157970,
           comment: 'Nice design - would love to see it come to life 😎',
         },
         {
           image: '/temp3.png',
           name: 'ann_lee',
-          timestamp: '1671157970',
+          timestamp: 1671157970,
           comment: 'Love the colors and the font!! Well done 👍',
         },
         {
           image: '/temp1.png',
           name: 'JaneSmith',
-          timestamp: '1671157970',
+          timestamp: 1671157970,
           comment:
             'Overall it looks incredible. You’ve nailed the design!! I think it fits perfectly with RAMENGVRL’s image 🔥 Let’s make it real folks!',
         },
         {
           image: '/temp2.png',
           name: 'Paul Leto',
-          timestamp: '1671157970',
+          timestamp: 1671157970,
           comment: 'Nice design - would love to see it come to life 😎',
         },
         {
           image: '/temp3.png',
           name: 'ann_lee',
-          timestamp: '1671157970',
+          timestamp: 1671157970,
           comment: 'Love the colors and the font!! Well done 👍',
         },
       ],

@@ -1,4 +1,4 @@
-import { Flex, UnstyledButton, Stack, Text } from '@mantine/core';
+import { Flex, UnstyledButton, Text } from '@mantine/core';
 import { IoIosCheckmark, IoIosClose } from 'react-icons/io';
 import UserCard from './userInfo';
 

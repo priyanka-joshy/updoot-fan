@@ -7,13 +7,11 @@ import {
   Subheading3,
 } from '@components/typography';
 import styles from './styles.module.scss';
-import ProposalCard from '@components/proposalCard';
 
 interface IProps {
   type?: 'primary' | 'secondary';
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  color?: 'purple' | 'black' | 'white' | 'grey';
-  style?: { [property: string]: string };
+  color?: 'purple' | 'black';
 }
 
 const Button = (
@@ -28,7 +26,6 @@ const Button = (
     size: props.size ?? 'md',
     type: props.type ?? 'primary',
     color: props.color ?? 'purple',
-    style: props.style,
   };
   const typography = {
     sm: Subheading3,
@@ -43,7 +40,6 @@ const Button = (
         styles[props.size!],
         styles[props.disabled ? 'disabled' : `${props.type!}-${props.color!}`],
       ].join(' ')}
-      style={props.style}
       {...HTMLButtonProps}>
       <Typography color="inherit">{props.children}</Typography>
     </button>

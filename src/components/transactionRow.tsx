@@ -1,8 +1,7 @@
-import { Flex, Text, UnstyledButton } from '@mantine/core';
+import { Flex, UnstyledButton } from '@mantine/core';
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 import { TbDotsVertical } from 'react-icons/tb';
 import { Subheading3 } from './typography';
-import UserCard from './userInfo';
 
 interface IProps {
   action: string;
