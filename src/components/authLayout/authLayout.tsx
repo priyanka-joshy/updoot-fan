@@ -1,9 +1,7 @@
 import { ReactNode } from 'react';
 import {
-  Text,
-  Title,
+  Container,
 } from '@mantine/core';
-import UpdootLogo from '../../../public/mainLogo.svg';
 import styles from './authLayout.module.scss';
 
 const AuthLayout = (
@@ -14,26 +12,11 @@ const AuthLayout = (
   return (
     <div className={styles.authPageWrapper}>
       <div className={styles.authPage}>
-        <UpdootLogo className={styles.logo} />
-        <div className={styles.card}>
-          <div className={styles.formContainer}>
+        <img src='/authPageLogo.svg' className={styles.logo} />
+        <Container size={450} px={0}>
           {props.children}
-          </div>
-          <div className={styles.imageContainer}>
-            <Title order={2} align="center">Welcome aboard!</Title>
-            <img
-              src='/astronaut.png'
-              height='auto'
-              width='100%'
-            />
-          </div>
-        </div>
+        </Container>
       </div>
-      <footer>
-        <Text>© 2022</Text>
-        <Text weight={600}>&nbsp;Updoot</Text>
-        <Text>. All rights reserved</Text>
-      </footer>
     </div>
   );
 };
