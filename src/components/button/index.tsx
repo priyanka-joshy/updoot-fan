@@ -41,7 +41,7 @@ const Button = (
         styles[props.disabled ? 'disabled' : `${props.type!}-${props.color!}`],
       ].join(' ')}
       {...HTMLButtonProps}>
-      <Typography color="inherit">{props.children}</Typography>
+      <Typography color="inherit" style={{textAlign: 'center'}}>{props.children}</Typography>
     </button>
   );
 };
