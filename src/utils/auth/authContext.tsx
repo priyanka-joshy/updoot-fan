@@ -1,54 +1,23 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import {
+  CognitoUserExt, 
+  LoginCredentials, 
+  ResetPassword, 
+  SignUpCredentials
+} from './dataTypes'
 // amplify authentication
 import { Amplify, Auth } from 'aws-amplify';
 import { CognitoUser } from "@aws-amplify/auth";
 import awsExports from '../../../src/aws-exports';
 Amplify.configure(awsExports);
 
-type UserRole = 'fan' | 'staff';
-interface UserAttributes {
-  sub: string;
-  email: string;
-  email_verified: boolean;
-  name: string;
-  phone_number: string;
-  phone_number_verified: boolean;
-}
-interface CognitoUserExt extends CognitoUser {
-  attributes: UserAttributes;
-  signInUserSession: {
-    accessToken: {
-      jwtToken: string,
-      payload: {
-        "cognito:groups": UserRole[] | undefined
-      }
-    }
-  }
-}
-interface LoginCredentials {
-  email: string,
-  password: string
-}
-interface SignUpCredentials extends LoginCredentials {
-  name: string;
-  phone_number: string;
-}
-interface ConfirmationCredentials {
-  email: string,
-  code: string
-}
-interface ResetPassword {
-  email: string,
-  code: string,
-  password: string
-}
 interface AuthContextI {
   user: CognitoUserExt | null,
   authLoading: boolean,
   cognitoLogin: ({ email, password }: LoginCredentials) => Promise<Error | undefined>,
   cognitoLogout: () => Promise<void>,
-  cognitoRegister: ({ email, password, name, phone_number }: SignUpCredentials) => Promise<CognitoUser | Error>,
-  cognitoConfirmRegistration: ({ email, code }: ConfirmationCredentials) => Promise<any>,
+  cognitoRegister: ({ email, password, username, phone_number }: SignUpCredentials) => Promise<CognitoUser | Error>,
+  cognitoConfirmRegistration: (username: string, code: string) => Promise<any>,
   cognitoForgotPassword: (email: string) =>  Promise<any>
   cognitoSubmitNewPassword: ({ email, code, password }: ResetPassword) => Promise<string | Error>
 }
@@ -110,14 +79,14 @@ const useCognitoAuth = () => {
     }
   }
 
-  const cognitoRegister = async ({ email, password, name, phone_number }: SignUpCredentials) => {
+  const cognitoRegister = async ({ email, password, username, phone_number }: SignUpCredentials) => {
     try {
       const { user } = await Auth.signUp({
         username: email,
         password,
         attributes: {
           email,
-          name,
+          name: username,
           phone_number
         },
       });
@@ -126,9 +95,9 @@ const useCognitoAuth = () => {
       return error as Error;
     }
   }
-  const cognitoConfirmRegistration = async ({email, code}: ConfirmationCredentials) => {
+  const cognitoConfirmRegistration = async (username: string, code: string) => {
     try {      
-      const res = await Auth.confirmSignUp(email, code);
+      const res = await Auth.confirmSignUp(username, code);
       return res;
     } catch (error) {
       return error as Error;
