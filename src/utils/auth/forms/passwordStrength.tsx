@@ -1,6 +1,10 @@
 import { Subheading3 } from '@components/typography';
 import { Input, PasswordInput } from '@mantine/core';
-import { useInputState } from '@mantine/hooks';
+
+interface IProps {
+  value: string, 
+  onChange: (value: string) => void 
+}
 
 const requirements = [
   { re: /[0-9]/, label: '1 number' },
@@ -16,8 +20,7 @@ const PasswordRequirement = ({ meets, label }: { meets: boolean; label: string }
   );
 }
 
-const PasswordStrength = ({ onChange }: { onChange: (value: string) => void }) => {
-  const [value, setValue] = useInputState('');
+const PasswordStrength = ({ value, onChange }: IProps) => {
   const regExpChecks = requirements.map((requirement, index) => (
     <PasswordRequirement key={index} label={requirement.label} meets={requirement.re.test(value)} />
   ));
@@ -27,7 +30,6 @@ const PasswordStrength = ({ onChange }: { onChange: (value: string) => void }) =
       <PasswordInput
         value={value}
         onChange={(e)=>{
-          setValue(e.target.value);
           onChange(e.target.value)
         }}
         size='lg'
