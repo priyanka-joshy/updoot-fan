@@ -14,6 +14,7 @@ import {
 } from '@components/typography';
 import ProposalCard from '@components/proposalCard';
 import VoteRow from '@components/voteRow';
+import Button from '@components/button';
 
 const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   props
@@ -78,35 +79,96 @@ const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           </Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="proposals" pt="xs">
-          <Flex gap="xl" wrap="wrap">
-            {props.proposals.map((proposal) => (
-              <ProposalCard {...proposal} />
-            ))}
+          <Flex
+            gap="xl"
+            wrap="wrap"
+            justify={props.proposals.length === 0 ? 'center' : undefined}>
+            {props.proposals.length > 0 ? (
+              props.proposals.map((proposal) => <ProposalCard {...proposal} />)
+            ) : (
+              <Stack align="center" justify="center" h="40vh" w="30%">
+                <img src="/proposalEmpty.png" />
+                <BodyText color="#5C5C5C" style={{ textAlign: 'center' }}>
+                  Start building your very own proposal now! It will only take a
+                  few clicks.
+                </BodyText>
+                <Button
+                  size="lg"
+                  onClick={() => router.push('proposals/create')}>
+                  Upload your first proposal
+                </Button>
+              </Stack>
+            )}
           </Flex>
         </Tabs.Panel>
         <Tabs.Panel value="drafts" pt="xs">
-          Content
+          <Flex
+            gap="xl"
+            wrap="wrap"
+            justify={props.drafts.length === 0 ? 'center' : undefined}>
+            {props.drafts.length > 0 ? (
+              <></>
+            ) : (
+              <EmptyState
+                title="No drafts yet."
+                text="Save your proposals for later to view them here"
+              />
+            )}
+          </Flex>
         </Tabs.Panel>
         <Tabs.Panel value="comments" pt="xs">
-          Content
+          {props.comments.length > 0 ? (
+            <></>
+          ) : (
+            <Flex justify="center">
+              <EmptyState
+                title="No comments yet."
+                text="Engage with the community by commenting on proposals"
+              />
+            </Flex>
+          )}
         </Tabs.Panel>
         <Tabs.Panel value="votes" pt="xs">
-          {props.votes.map((vote) => (
-            <VoteRow {...vote} />
-          ))}
+          {props.votes.length > 0 ? (
+            props.votes.map((vote) => <VoteRow {...vote} />)
+          ) : (
+            <Flex justify="center">
+              <EmptyState
+                title="No votes yet."
+                text="Actively drive ideas by voting on proposals"
+              />
+            </Flex>
+          )}
         </Tabs.Panel>
         <Tabs.Panel value="likes" pt="xs">
-          <Flex gap="xl" wrap="wrap">
-            {props.proposals.map((proposal) => (
-              <ProposalCard {...proposal} />
-            ))}
+          <Flex
+            gap="xl"
+            wrap="wrap"
+            justify={props.proposals.length === 0 ? 'center' : undefined}>
+            {props.proposals.length > 0 ? (
+              props.proposals.map((proposal) => <ProposalCard {...proposal} />)
+            ) : (
+              <EmptyState
+                title="No likes yet."
+                text="Support ideas and engage with the community by liking
+                  proposals"
+              />
+            )}
           </Flex>
         </Tabs.Panel>
         <Tabs.Panel value="bookmarks" pt="xs">
-          <Flex gap="xl" wrap="wrap">
-            {props.proposals.map((proposal) => (
-              <ProposalCard {...proposal} />
-            ))}
+          <Flex
+            gap="xl"
+            wrap="wrap"
+            justify={props.bookmarks.length === 0 ? 'center' : undefined}>
+            {props.bookmarks.length > 0 ? (
+              props.bookmarks.map((proposal) => <ProposalCard {...proposal} />)
+            ) : (
+              <EmptyState
+                title="No bookmarks yet."
+                text="Save great ideas you want to remember by bookmarking them"
+              />
+            )}
           </Flex>
         </Tabs.Panel>
       </Tabs>
@@ -114,18 +176,35 @@ const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   );
 };
 
+const EmptyState = (props: { title: string; text: string }) => (
+  <Stack align="center" justify="center" h="40vh" w="35%">
+    <Subheading1 style={{ fontWeight: 600 }}>{props.title}</Subheading1>
+    <BodyText color="#5C5C5C" style={{ textAlign: 'center' }}>
+      {props.text}
+    </BodyText>
+  </Stack>
+);
+
 export const getStaticProps: GetStaticProps<{
   proposals: any[];
+  bookmarks: any[];
+  likes: any[];
+  drafts: any[];
+  comments: any[];
   votes: any[];
 }> = () => ({
   props: {
-    proposals: new Array(5).fill({}).map((_, index) => ({
+    bookmarks: [],
+    likes: [],
+    drafts: [],
+    comments: [],
+    proposals: new Array(0).fill({}).map((_, index) => ({
       id: index.toString(),
       src: '/temp5.png',
       title:
         "I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?",
     })),
-    votes: new Array(3).fill({}).map((_, index) => ({
+    votes: new Array(0).fill({}).map(() => ({
       title:
         "I quoted one of Valtina's lyric to a merch. Should we have this for the event?",
       timestamp: Date.now(),
