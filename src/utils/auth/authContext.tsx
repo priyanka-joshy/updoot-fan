@@ -18,6 +18,7 @@ interface AuthContextI {
   cognitoLogout: () => Promise<void>,
   cognitoRegister: ({ email, password, username, phone_number }: SignUpCredentials) => Promise<CognitoUser | Error>,
   cognitoConfirmRegistration: (username: string, code: string) => Promise<any>,
+  cognitoResendCode: (email: string) => Promise<void>,
   cognitoForgotPassword: (email: string) =>  Promise<any>
   cognitoSubmitNewPassword: ({ email, code, password }: ResetPassword) => Promise<string | Error>
 }
@@ -104,6 +105,15 @@ const useCognitoAuth = () => {
     }
   }
 
+  const cognitoResendCode = async (email: string ) => {
+    try {
+      await Auth.resendSignUp(email);
+      alert("Code resent successfully ")
+    } catch (err) {
+      console.log('Error resending code: ', err);
+    }
+  }
+
   const cognitoForgotPassword = async (email: string) => {
     try {
       const data = await Auth.forgotPassword(email);
@@ -128,6 +138,7 @@ const useCognitoAuth = () => {
     cognitoLogout, 
     cognitoRegister, 
     cognitoConfirmRegistration, 
+    cognitoResendCode,
     cognitoForgotPassword,
     cognitoSubmitNewPassword
   };
