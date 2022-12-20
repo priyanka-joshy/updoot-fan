@@ -50,3 +50,11 @@ body {
 .mantine-TextInput-input, .mantine-PasswordInput-input {
   @include typography.text-options(18px, 400, 22px);
 }
+
+.mantine-Input-input {
+  border-color: colors.$light-gray;
+  &:focus {
+    border-color: colors.$secondary-hover;
+  }
+}
+
