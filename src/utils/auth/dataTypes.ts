@@ -1,4 +1,5 @@
 import { CognitoUser } from "@aws-amplify/auth";
+import { Value } from "react-phone-number-input";
 
 type UserRole = 'fan' | 'staff';
 interface UserAttributes {
@@ -27,7 +28,7 @@ interface LoginCredentials {
 }
 interface SignUp1_Credentials {
   username: string,
-  phone_number: string,
+  phone_number: Value | undefined,
   email: string
 }
 interface SignUp2_Credentials {
@@ -56,8 +57,7 @@ type AuthProcessI =
   | 'confirm'
   | 'verified'
   | 'login'
-  | 'forgotPassword'
-  | 'submitPassword';
+  | 'forgotPassword';
 
 interface FormField {
   type: 'text' | 'password',
