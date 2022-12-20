@@ -26,6 +26,7 @@
     "react-chartjs-2": "^5.0.1",
     "react-dom": "18.2.0",
     "react-icons": "^4.6.0",
+    "react-phone-number-input": "^3.2.13",
     "sass": "^1.56.1"
   },
   "devDependencies": {

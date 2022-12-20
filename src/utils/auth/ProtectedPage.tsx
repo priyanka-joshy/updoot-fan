@@ -22,7 +22,7 @@ export const ProtectedPage = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="authLoader">
-      <Loader color="white" size="lg" />
+      <Loader color="violet" size="lg" />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 @use 'styles/colors';
+@use 'src/components/typography/styles.module.scss' as typography;
 
 html,
 body {
@@ -13,11 +14,41 @@ body {
 }
 
 .authLoader {
-  background: linear-gradient(180deg, #ef5570, #ef5570, #33107c, #231149);
+  background-color: colors.$bg-white;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+// Override phone-number-input
+.PhoneInput {
+  width: 450px;
+  height: 50px;
+  margin-bottom: 0.75rem;
+  background-color: #fff;
+}
+.PhoneInputCountry {
+  width: 20%;
+  border: 1px solid #ced4da;
+  border-radius: 10px;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 23px 18px;
+}
+
+.PhoneInputInput {
+  margin-bottom: 0;
+  height: 100%;
+  border-radius: 10px;
+  border: 1px solid #ced4da;
+  padding: 0 1rem;
+  @include typography.text-options(18px, 400, 22px);
+}
+
+// Override mantine input fields
+.mantine-TextInput-input, .mantine-PasswordInput-input {
+  @include typography.text-options(18px, 400, 22px);
 }
 
 .mantine-Input-input {
@@ -26,3 +57,4 @@ body {
     border-color: colors.$secondary-hover;
   }
 }
+
