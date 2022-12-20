@@ -1,0 +1,20 @@
+@use 'styles/colors';
+
+.image {
+  width: 6.5rem;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.button {
+  width: 100px;
+  color: colors.$black;
+  background-color: colors.$light-gray;
+}
+
+.phonePicker {
+  * {
+    width: auto;
+  }
+}
