@@ -1,11 +1,4 @@
-import {
-  Container,
-  Flex,
-  Navbar,
-  NavbarProps,
-  NavLink,
-  Text,
-} from '@mantine/core';
+import { Container, Navbar, NavbarProps, NavLink } from '@mantine/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -15,7 +8,6 @@ import {
   HiOutlineLogout,
   HiOutlineUserGroup,
 } from 'react-icons/hi';
-import { WiStars } from 'react-icons/wi';
 import { AiOutlinePieChart, AiOutlineEye } from 'react-icons/ai';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { TbCalendarTime } from 'react-icons/tb';
@@ -106,7 +98,7 @@ const SideBar = (props: Partial<NavbarProps>) => {
           <Container px={0} my={100}>
             <SidebarLink
               label="Settings"
-              link=""
+              link="/user/settings"
               icon={<IoSettingsOutline size={24} />}
             />
             <NavLink

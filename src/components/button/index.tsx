@@ -36,11 +36,12 @@ const Button = (
   const Typography = typography[props.size!];
   return (
     <button
+      {...HTMLButtonProps}
       className={[
         styles[props.size!],
         styles[props.disabled ? 'disabled' : `${props.type!}-${props.color!}`],
-      ].join(' ')}
-      {...HTMLButtonProps}>
+        props.className,
+      ].join(' ')}>
       <Typography color="inherit">{props.children}</Typography>
     </button>
   );

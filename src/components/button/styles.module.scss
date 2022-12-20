@@ -2,6 +2,7 @@
 
 @mixin button($padding-inline, $padding-block) {
   width: fit-content;
+  height: fit-content;
   border-radius: 2.5rem;
   padding: $padding-inline $padding-block;
   transition: all 0.3s ease;
