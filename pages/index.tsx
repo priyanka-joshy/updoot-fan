@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { Loader } from '@mantine/core';
 import AuthLayout from '../src/components/authLayout';
-import Login from '../src/components/login';
+import AuthForm from '../src/components/authForm';
 import { useAuth } from '../src/utils/auth/authContext';
 import { handleUserType } from 'src/utils/auth/handleUserAccess';
 
@@ -14,7 +14,7 @@ const Home = () => {
     user && router.push(handleUserType(user).dashboardLink);
     return (
       <div className='authLoader'>
-        <Loader color="white" size="lg" />
+        <Loader color="violet" size="lg" />
       </div>
     );
   }
@@ -22,7 +22,7 @@ const Home = () => {
 
   return (
     <AuthLayout>
-      <Login />
+      <AuthForm />
     </AuthLayout>
   );
 };
