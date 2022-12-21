@@ -57,7 +57,7 @@ const Login = () => {
       confirm_password: '',
       name: '',
       phone_number: '',
-      terms_policies: false
+      terms_policies: false,
     },
     validate: {
       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
@@ -75,7 +75,7 @@ const Login = () => {
       phone_number: (value) =>
         value.length >= 8 ? null : 'Invalid telephone number',
       name: (value) => (value.length > 0 ? null : 'Required'),
-      terms_policies: (value: boolean) => (value ? null : 'Required')
+      terms_policies: (value: boolean) => (value ? null : 'Required'),
     },
   });
   const confirmHook = useForm<ConfirmationCredentials>({
@@ -193,25 +193,60 @@ const Login = () => {
         })}>
         <Stack>
           <TextInput placeholder="Name" {...signupHook.getInputProps('name')} />
-          <TextInput placeholder="Email" {...signupHook.getInputProps('email')} />
-          <PasswordInput placeholder="Enter Password" {...signupHook.getInputProps('password')} />
-          <PasswordInput placeholder="Confirm Password" {...signupHook.getInputProps('confirm_password')} />
-          <TextInput placeholder="Phone Number" {...signupHook.getInputProps('phone_number')} />
+          <TextInput
+            placeholder="Email"
+            {...signupHook.getInputProps('email')}
+          />
+          <PasswordInput
+            placeholder="Enter Password"
+            {...signupHook.getInputProps('password')}
+          />
+          <PasswordInput
+            placeholder="Confirm Password"
+            {...signupHook.getInputProps('confirm_password')}
+          />
+          <TextInput
+            placeholder="Phone Number"
+            {...signupHook.getInputProps('phone_number')}
+          />
           <div>
-            <Checkbox color="dark"
+            <Checkbox
+              color="dark"
               label={
                 <>
                   I agree with{' '}
-                  <Anchor size="sm" href="#" target="_blank" weight={700} color="dark">terms</Anchor>
-                  {' '}and{' '}
-                  <Anchor size="sm" href="#" target="_blank" weight={700} color="dark">policies</Anchor>
+                  <Anchor
+                    size="sm"
+                    href="#"
+                    target="_blank"
+                    weight={700}
+                    color="dark">
+                    terms
+                  </Anchor>{' '}
+                  and{' '}
+                  <Anchor
+                    size="sm"
+                    href="#"
+                    target="_blank"
+                    weight={700}
+                    color="dark">
+                    policies
+                  </Anchor>
                 </>
               }
-              {...signupHook.getInputProps('terms_policies', { type: 'checkbox' })}
+              {...signupHook.getInputProps('terms_policies', {
+                type: 'checkbox',
+              })}
             />
-            <Text color="red" fz={12}>{signupHook.errors["terms_policies"]}</Text>
+            <Text color="red" fz={12}>
+              {signupHook.errors['terms_policies']}
+            </Text>
           </div>
-          {authError && <Text color="red" fz={14}>{authError}</Text>}
+          {authError && (
+            <Text color="red" fz={14}>
+              {authError}
+            </Text>
+          )}
           <Button color="dark" type="submit">
             Sign Up
           </Button>

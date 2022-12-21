@@ -19,3 +19,29 @@
   padding: 1rem;
   margin-block: 1.5rem;
 }
+.inputContainer {
+  margin: 1rem 0;
+}
+
+.logo {
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+
+.selectItem {
+  padding: 1rem;
+  &:hover {
+    border: 1px solid #6200ff;
+    border-radius: 5px;
+  }
+}
+
+.File {
+  padding: 1rem;
+  border: 1px solid '#A1A1A1';
+}
+
+.supportDocuments {
+  width: 100%;
+  padding: 1rem;
+}
