@@ -15,7 +15,6 @@ import {
   HiOutlineLogout,
   HiOutlineUserGroup,
 } from 'react-icons/hi';
-import { WiStars } from 'react-icons/wi';
 import { AiOutlinePieChart, AiOutlineEye } from 'react-icons/ai';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { TbCalendarTime } from 'react-icons/tb';
