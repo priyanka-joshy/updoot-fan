@@ -1,23 +1,25 @@
 import { useForm } from '@mantine/form';
 import { useAuth } from '../authContext';
-import { Input, Stack, TextInput } from '@mantine/core';
+import { Stack, TextInput } from '@mantine/core';
 import Button from "@components/button";
 import { Subheading2 } from '@components/typography';
-import { AuthProcessI, ConfirmationCredentials } from "../dataTypes";
+import { AuthProcessI, ConfirmationCredentials, SignUpCredentials } from "../dataTypes";
 import { Dispatch, SetStateAction } from 'react';
+import styles from '@components/authForm/styles.module.scss';
 
 interface IProps {
   setFormType: Dispatch<SetStateAction<AuthProcessI>>,
   setAuthError: Dispatch<SetStateAction<string | undefined>>
-  username: string,
-  email?: string,
-  phone_number?: string
+  type: 'phone_number' | 'email'
+  userCred: SignUpCredentials
 }
 
-export const Verification = ({ setFormType, setAuthError, username, email, phone_number }: IProps) => {
+export const Verification = ({ setFormType, setAuthError, userCred, type }: IProps) => {
   const { cognitoConfirmRegistration, cognitoResendCode } = useAuth();
-  const formattedPhone = phone_number && '*'.repeat(phone_number.length-3) + phone_number.slice(-3);
-  const formattedEmail = email && (email.split('@')[0]).slice(0,3) + '*'.repeat(email.split('@')[0].length-3) +'@'+ email.split('@')[1];
+  const {email, phone_number, username} = userCred;
+  const formattedPhone = (type==='phone_number' && phone_number && phone_number!=='') && '*'.repeat(phone_number.length-3) + phone_number.slice(-3);
+  const formattedEmail = (type==='email' && email!=='') && (email.split('@')[0]).slice(0,3) + '*'.repeat(email.split('@')[0].length-3) +'@'+ email.split('@')[1];
+
   const confirmHook = useForm<ConfirmationCredentials>({
     initialValues: {
       code: '',
@@ -30,32 +32,28 @@ export const Verification = ({ setFormType, setAuthError, username, email, phone
   return (
     <form
       onSubmit={confirmHook.onSubmit(async (values) => {
-        const res = await cognitoConfirmRegistration(username, values.code);
+        const res = await cognitoConfirmRegistration(email, values.code);
         if (res instanceof Error) {
           setAuthError(res.message);
         } else {
           setAuthError(undefined);
-          setFormType('verified');
+          type==="email" && setFormType('verified');
         }
       })}>
       <Stack spacing={30}>
-        <div>
-          <Input.Label mb={10}>
-            <Subheading2>Enter the 6-digit code sent to {email && formattedEmail} {phone_number && formattedPhone}</Subheading2>
-          </Input.Label>
           <TextInput
+            label={`Enter the 6-digit code sent to ${type==="phone_number"? formattedPhone: formattedEmail}`}
             placeholder='123456'
             {...confirmHook.getInputProps('code')}
             size='lg'
             radius={10}
           />
-        </div>
 
         <div>
           <Subheading2 style={{marginBottom: '10px'}}>Didn’t receive the code?</Subheading2>
           <Button
             size='lg'
-            style={{ borderRadius: '40px', width: '450px' }}
+            className={styles.authButton}
             type="secondary"
             color="black"
             onClick={async (e) => {
@@ -70,12 +68,11 @@ export const Verification = ({ setFormType, setAuthError, username, email, phone
         <Button
           disabled={!(confirmHook.isTouched() && confirmHook.isValid())}
           size='lg'
-          style={{ borderRadius: '40px', width: '450px' }}
+          className={styles.authButton}
           type="primary"
           color="purple"
         >
-          {phone_number && 'Next'}
-          {email && 'Create Account'}
+          {type==="phone_number"? 'Next': 'Create Account'}
         </Button>
       </Stack>
     </form>

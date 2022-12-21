@@ -12,6 +12,7 @@ import SignUpForm from 'src/utils/auth/forms/signUp';
 import { Verification } from 'src/utils/auth/forms/verification';
 import { Login } from 'src/utils/auth/forms/login';
 import { ForgotPassword } from 'src/utils/auth/forms/forgotPassword';
+import styles from './styles.module.scss'
 
 const AuthForm = () => {
   const [formType, setFormType] = useState<AuthProcessI>('login');
@@ -35,7 +36,7 @@ const AuthForm = () => {
   const toggleAuthButton = (
     <Button
       size='md'
-      style={{ borderRadius: '40px', width: '450px' }}
+      className={styles.authButton}
       type="secondary"
       color="black"
       onClick={() => {
@@ -49,7 +50,7 @@ const AuthForm = () => {
   // Forgot password button
   const forgotPasswordButton = (
     <Subheading3
-      style={{ textDecoration: 'underline', textUnderlineOffset: '3px', cursor: 'pointer' }}
+      className={styles.authLink}
       onClick={() => {
         setFormType('forgotPassword');
         setAuthError(undefined);
@@ -61,7 +62,8 @@ const AuthForm = () => {
   const accountCreated = (
     <Button
       size='lg'
-      style={{ borderRadius: '40px', width: '450px', marginTop: '40px' }}
+      className={styles.authButton}
+      style={{ marginTop: '40px' }}
       type="primary"
       color="purple"
       onClick={()=>setFormType('login')}
@@ -76,27 +78,24 @@ const AuthForm = () => {
         <SignUpForm 
           setAuthError={setAuthError} 
           setFormType={setFormType} 
+          userCred={userCred}
           setUserCred={setUserCred}
         />
         {toggleAuthButton}
       </>
     ),
-    confirm: (userCred.email!==''? 
+    confirm: (
       <Verification 
-        username={userCred.email} 
-        email={userCred.email} 
+        type='email'
+        userCred={userCred}
         setAuthError={setAuthError} 
         setFormType={setFormType} 
       />
-      : 
-      <>Error</>
     ),
     verified: accountCreated,
     login: (
       <>
-        <Login 
-          setAuthError={setAuthError} 
-        />
+        <Login setAuthError={setAuthError} />
         {toggleAuthButton}
         {forgotPasswordButton}
       </>

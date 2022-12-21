@@ -58,3 +58,8 @@ body {
   }
 }
 
+.mantine-InputWrapper-label {
+  margin-bottom: 10px;
+  // @include typography.text-options(20px, 500, 26px);
+  @include typography.text-options(18px, 500, 22px); //Subherading2
+}
