@@ -185,7 +185,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           </Stack>
           <Stack className={styles.inputContainer}>
             <Heading3>Title</Heading3>
-            <TextInput placeholder="What are you proposing? (Maximum 100 characters)"></TextInput>
+            <TextInput placeholder="What are you proposing? (Maximum 100 characters)" />
           </Stack>
           <Stack className={styles.inputContainer}>
             <Heading3>Description</Heading3>
@@ -249,7 +249,9 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           }}>
           <Stack spacing={'lg'}>
             <StatCard
-              description={`The more detailed your proposal is, the fewer STARDUST will be needed. \n Pro Tip: Pick a sponsor to participate in the campaign to improve your credibility.This will help you level up faster! `}
+              style={{ whiteSpace: 'pre-wrap', alignContent: 'left' }}
+              isOnProposalCreate
+              description={`The more detailed your proposal is, the fewer STARDUST will be needed.\n\nPro Tip: Pick a sponsor to participate in the campaign to improve your credibility.This will help you level up faster! `}
               data={''}
             />
             <Subheading1 color="purple">
