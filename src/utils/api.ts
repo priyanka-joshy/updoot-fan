@@ -16,23 +16,25 @@ class Api {
   async post(endpoint: string, data?: any) {
     const url = `${this.origin}${this.prefix ?? ''}${endpoint}`;
     const body = data ? JSON.stringify(data) : undefined;
-    const response = await fetch(url, { method: 'POST', body });
+    const headers = { 'Content-Type': 'application/json' };
+    const response = await fetch(url, { method: 'POST', body, headers });
     return await response.json();
   }
 }
 
 class Router {
+  auth: Api;
   comment: Api;
   proposal: Api;
   user: Api;
 
   constructor(origin: string) {
+    this.auth = new Api(origin, '/auth');
     this.comment = new Api(origin, '/comment');
     this.proposal = new Api(origin, '/proposal');
     this.user = new Api(origin, '/user');
   }
 }
 
-export const BACKEND_URL =
-  'http://ec2-54-180-115-206.ap-northeast-2.compute.amazonaws.com';
+export const BACKEND_URL = 'http://localhost:8000';
 export default new Router(`${BACKEND_URL}/api`);
