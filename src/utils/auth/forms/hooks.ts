@@ -1,6 +1,6 @@
 import { useForm } from "@mantine/form";
 import { isPossiblePhoneNumber, Value } from "react-phone-number-input";
-import { SignUp1_Credentials, SignUp2_Credentials } from "../dataTypes";
+import { ChangePassword, SignUp1_Credentials, SignUp2_Credentials } from "../dataTypes";
 import { signUp1_initialValues, signUp2_initialValues } from "./formData";
 
 
@@ -36,4 +36,42 @@ const useSignUp = ()=> {
   return { signUp1_hook, signUp2_hook };
 }
 
-export { useSignUp };
+const useChangePassword = ()=> {
+  const changePasswordHook = useForm<ChangePassword>({
+    initialValues: {
+      old_password: '',
+      new_password: '',
+      confirm_password: '',
+    },
+    validate: {
+      old_password: (value) =>
+      value.length > 8 &&
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/.test(
+        value
+      )
+        ? null
+        : value.length < 8
+        ? 'Must be at least 8 characters'
+        : 'Must contain uppercase, lowercase, number and special case characters',
+      new_password: (value) =>
+        value.length > 8 &&
+        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/.test(
+          value
+        )
+          ? null
+          : value.length < 8
+          ? 'Must be at least 8 characters'
+          : 'Must contain uppercase, lowercase, number and special case characters',
+      confirm_password: (value, values) =>
+        value === values.new_password
+          ? null
+          :'Passwords did not match'
+    },
+  });
+  return changePasswordHook;
+}
+
+export { 
+  useSignUp, 
+  useChangePassword
+};

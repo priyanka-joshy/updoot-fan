@@ -20,7 +20,8 @@ interface AuthContextI {
   cognitoConfirmRegistration: (username: string, code: string) => Promise<any>,
   cognitoResendCode: (email: string) => Promise<void>,
   cognitoForgotPassword: (email: string) =>  Promise<any>
-  cognitoSubmitNewPassword: ({ email, code, password }: ResetPassword) => Promise<string | Error>
+  cognitoSubmitNewPassword: ({ email, code, password }: ResetPassword) => Promise<string | Error>,
+  cognitoChangePassword: ({ old_password, new_password }: { old_password: string; new_password: string; }) => Promise<Error | "SUCCESS">
 }
 
 // auth context
@@ -131,6 +132,16 @@ const useCognitoAuth = () => {
     }
   }
 
+  const cognitoChangePassword = async ({ old_password, new_password }: { old_password: string, new_password: string }) => {
+    if(!user) throw new Error("User not authenticated.");
+    try {
+      const data = await Auth.changePassword(user, old_password, new_password);
+      return data;
+    } catch (error) {
+      return error as Error;
+    }
+  }
+
   return { 
     user, 
     authLoading,
@@ -140,6 +151,7 @@ const useCognitoAuth = () => {
     cognitoConfirmRegistration, 
     cognitoResendCode,
     cognitoForgotPassword,
-    cognitoSubmitNewPassword
+    cognitoSubmitNewPassword,
+    cognitoChangePassword
   };
 }
