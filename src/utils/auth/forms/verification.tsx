@@ -6,6 +6,7 @@ import { Subheading2 } from '@components/typography';
 import { AuthProcessI, ConfirmationCredentials, SignUpCredentials } from "../dataTypes";
 import { Dispatch, SetStateAction } from 'react';
 import styles from '@components/authForm/styles.module.scss';
+import api from 'src/utils/api';
 
 interface IProps {
   setFormType: Dispatch<SetStateAction<AuthProcessI>>,
@@ -37,6 +38,17 @@ export const Verification = ({ setFormType, setAuthError, userCred, type }: IPro
           setAuthError(res.message);
         } else {
           setAuthError(undefined);
+          // Register user in db
+          const result = await api.auth.post(
+            '/register', 
+            {
+              username,
+              email,
+              role: "Fan"
+            }
+          );
+          console.log(result);
+          // Account successfully created
           type==="email" && setFormType('verified');
         }
       })}>
