@@ -163,6 +163,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
 
             <Carousel
               mt="lg"
+              style={{ padding: '0 rem' }}
               height="15vh"
               align="start"
               slideSize="25%"
@@ -330,7 +331,6 @@ const Proposal: NextPage<ProposalStats> = (props) => {
             </Stack>
           </Stack>
         </Grid.Col>
-        <Grid.Col md={4}></Grid.Col>
       </Grid>
       <UnstyledButton
         style={{
