@@ -1,0 +1,12 @@
+@use 'styles/colors';
+
+.authButton {
+  border-radius: 40px;
+  width: 450px;
+}
+
+.authLink {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
