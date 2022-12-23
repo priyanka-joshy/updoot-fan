@@ -39,7 +39,8 @@ const PasswordStrength = ({ value, onChange }: IProps) => {
       <Input.Description mt={10} style={{
         display: 'flex',
         flexWrap: 'wrap',
-        gap: '1rem 1.625rem'
+        gap: '1rem 1.625rem',
+        maxWidth: '26rem'
       }}>
         <PasswordRequirement label="8 characters minimum" meets={value.length > 7}/>
         {regExpChecks}

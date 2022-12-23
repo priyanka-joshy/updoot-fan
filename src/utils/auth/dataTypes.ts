@@ -65,6 +65,12 @@ interface FormField {
   placeholder: string,
 }
 
+interface ChangePassword {
+  old_password: string,
+  new_password: string,
+  confirm_password: string;
+}
+
 export type {
   CognitoUserExt,
   LoginCredentials,
@@ -75,5 +81,6 @@ export type {
   ResetPassword,
   PasswordReset,
   AuthProcessI,
-  FormField
+  FormField,
+  ChangePassword
 }
