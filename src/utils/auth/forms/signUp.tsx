@@ -46,17 +46,16 @@ const SignUpForm = ({ setAuthError, setFormType, userCred, setUserCred }: IProps
       })}>
       <Stack>
         {Object.entries(signUp1_formData).map(([name, attributes]) => (
-          <>
+          <div key={name}>
             {name !== "phone_number" ?
               <TextInput
-                key={name}
                 label={attributes.label}
                 placeholder={attributes.placeholder}
                 {...signUp1_hook.getInputProps(name)}
                 size='lg'
                 radius={10}
               /> :
-              <div key={name}>
+              <div>
                 <Input.Label>{attributes.label}</Input.Label>
                 <PhoneInput
                   placeholder="Enter phone number"
@@ -67,7 +66,7 @@ const SignUpForm = ({ setAuthError, setFormType, userCred, setUserCred }: IProps
                 />
               </div>
             }
-          </>
+          </div>
         ))}
         <Button
           disabled={!(signUp1_hook.isTouched() && signUp1_hook.isValid())}
