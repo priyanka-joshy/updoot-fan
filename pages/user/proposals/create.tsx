@@ -42,10 +42,13 @@ import {
 import { Heading1, Heading3, Subheading1 } from '@components/typography';
 import Button from '@components/button';
 import StatCard from '@components/statCard';
+import { useAuth } from 'src/utils/auth/authContext';
 
 const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   props
 ) => {
+  const { user } = useAuth();
+  console.log(user?.attributes);
   const [artist, setArtist] = useState('');
   const [details, setDetails] = useState('');
   const [titleImage, setTitleImage] = useState<File | null>();

@@ -77,8 +77,8 @@ const Proposals: NextPage<
             {...pc}
             bookmarked={
               showType === 'Proposals'
-                ? props.bookmark.proposalBookmarks?.includes(pc._id)
-                : props.bookmark.campaignBookmarks?.includes(pc._id)
+                ? props.bookmark?.proposalBookmarks?.includes(pc._id)
+                : props.bookmark?.campaignBookmarks?.includes(pc._id)
             }
           />
         ))}

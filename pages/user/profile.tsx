@@ -236,12 +236,14 @@ export const getServerSideProps: GetServerSideProps<{
   const commentRes = await api.comment.get(`/get-by-username/${name}`);
   const proposalRes = await api.proposal.get(`/user/${email}`);
   const proposalBookmarks: Proposal[] = [];
-  for (const proposalId of bookmarkRes.message.bookmark.proposalBookmarks) {
+  for (const proposalId of bookmarkRes.message.bookmark?.proposalBookmarks ??
+    []) {
     const { message: proposal } = await api.proposal.get(`/${proposalId}`);
     proposalBookmarks.push(proposal);
   }
   const campaignBookmarks: Campaign[] = [];
-  for (const campaignId of bookmarkRes.message.bookmark.campaignBookmarks) {
+  for (const campaignId of bookmarkRes.message.bookmark?.campaignBookmarks ??
+    []) {
     const { message: campaign } = await api.campaign.get(`/${campaignId}`);
     proposalBookmarks.push(campaign);
   }
