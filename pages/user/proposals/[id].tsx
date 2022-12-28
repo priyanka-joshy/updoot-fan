@@ -12,6 +12,8 @@ import {
 } from '@mantine/core';
 import { Carousel } from '@mantine/carousel';
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
+import { useRouter } from 'next/router';
+
 import { ParsedUrlQuery } from 'querystring';
 
 import { FiCheckCircle, FiHeart, FiUserCheck } from 'react-icons/fi';
@@ -63,6 +65,7 @@ const getDateDifference = (expiration: EpochTimeStamp) => {
 
 const Proposal: NextPage<ProposalStats> = (props) => {
   const [modalOpened, setModalOpened] = useState(false);
+  const router = useRouter();
 
   return (
     <div>
@@ -139,7 +142,8 @@ const Proposal: NextPage<ProposalStats> = (props) => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 gap: '0.5rem',
-              }}>
+              }}
+              onClick={() => router.back()}>
               <TbChevronLeft size={20} />
               Back
             </UnstyledButton>
@@ -263,6 +267,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
                   <StatCard
                     data={'67%'}
                     description="Approval Rate"
+                    color="#F0F0F0"
                     icon={<BiLike size={36} color="#6200FF" />}
                   />
                 </Grid.Col>
@@ -340,9 +345,12 @@ const Proposal: NextPage<ProposalStats> = (props) => {
           justifyContent: 'center',
           alignItems: 'center',
           gap: '0.5rem',
+        }}
+        onClick={() => {
+          window.scrollTo(0, 0);
         }}>
         <TbChevronUp size={25} />
-        Back
+        Back Up
       </UnstyledButton>
     </div>
   );

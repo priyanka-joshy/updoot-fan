@@ -1,62 +1,86 @@
 import {
+  Anchor,
   Avatar,
   Box,
-  Button as ButtonMantine,
+  Checkbox,
   CloseButton,
   Flex,
   Grid,
   Group,
-  Input,
-  Loader,
+  Modal,
   MultiSelect,
   MultiSelectValueProps,
-  SelectItemProps,
   Stack,
   Text,
   Textarea,
   TextInput,
-  Title,
   UnstyledButton,
 } from '@mantine/core';
 import { DatePicker } from '@mantine/dates';
 import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
-import { forwardRef, useRef, useState } from 'react';
-import { IoIosAddCircle, IoIosEye } from 'react-icons/io';
-import { WiStars } from 'react-icons/wi';
-import { RxCross1, RxMargin } from 'react-icons/rx';
+import { useRouter } from 'next/router';
 
+import { forwardRef, useRef, useState } from 'react';
+import api from 'src/utils/api';
 import styles from 'styles/user/proposals/create.module.scss';
-import Dropzone from '@components/dropzone';
-import Dropdown from '@components/dropdown';
-import FilePicker from '@components/filePicker';
-import UserCard from '@components/userInfo';
 
 import {
   TbCalendar,
   TbChevronLeft,
   TbChevronUp,
   TbEdit,
-  TbSearch,
+  TbHandStop,
   TbUpload,
 } from 'react-icons/tb';
-import { Heading1, Heading3, Subheading1 } from '@components/typography';
+import {
+  BodyText,
+  Heading1,
+  Heading3,
+  Subheading1,
+} from '@components/typography';
 import Button from '@components/button';
 import StatCard from '@components/statCard';
+import { Artist, Proposal } from 'src/utils/types';
+import { useAuth } from 'src/utils/auth/authContext';
+import Dropzone from '@components/dropzone';
 
 const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   props
 ) => {
-  const [artist, setArtist] = useState('');
-  const [details, setDetails] = useState('');
+  const { user: author } = useAuth();
+  const [artist, setArtist] = useState<Artist[]>(props.artists);
+  const [sponsors, setSponsors] = useState<string[]>([]);
+  const [title, setTitle] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
   const [titleImage, setTitleImage] = useState<File | null>();
   const [SupportingFiles, setSupportingFiles] = useState<File[]>([]);
-  const dropdownType = 'artist';
+  const [modalOpened, setModalOpened] = useState(false);
+  const [publishCompleteModal, setPublishCompleteModal] = useState(false);
+  const router = useRouter();
+  const openRef = useRef<() => void>();
 
   interface ItemProps extends React.ComponentPropsWithoutRef<'div'> {
     image: string;
     label: string;
   }
 
+  const createProposal = (status: 'Pending' | 'Draft') => {
+    const body: Partial<Proposal> = {
+      title: title,
+      details: description,
+      supportingMaterials: ['test'],
+      artistId: artist.map((a) => a._id),
+      companyId: 'companyId',
+      brand: 'brand',
+      sponsors: artist.map((a) => a._id),
+      author: author?.attributes.name,
+      titleImage: 'test',
+      status: status,
+    };
+    return body;
+  };
   const SelectItem = forwardRef<HTMLDivElement, ItemProps>(
     ({ image, label, ...others }: ItemProps, ref) => (
       <div ref={ref} {...others}>
@@ -86,7 +110,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
     return (
       <div {...others}>
         <Box
-          sx={(theme) => ({
+          sx={{
             display: 'flex',
             cursor: 'default',
             alignItems: 'center',
@@ -94,7 +118,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
             borderRadius: 4,
             border: '1px solid black',
             margin: '0.2rem',
-          })}>
+          }}>
           <Avatar className={styles.logo} src={image} />
 
           <Box sx={{ lineHeight: 1, fontSize: 12 }}>{label}</Box>
@@ -112,6 +136,96 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
 
   return (
     <div>
+      <Modal
+        centered={true}
+        radius={'xl'}
+        opened={modalOpened}
+        onClose={() => setModalOpened(false)}>
+        <Stack align={'center'}>
+          <TbUpload color="#6200FF" size={36} />
+          <Heading3 style={{ fontWeight: '600' }}>
+            Publish Your Proposal
+          </Heading3>
+          <Subheading1>Publishing requires StarDust to be valid</Subheading1>
+          <Stack
+            spacing={'sm'}
+            style={{
+              borderRadius: '1rem',
+              border: '1px solid #DFE0EB',
+              padding: '1rem',
+              marginTop: '2.5rem',
+              width: '90%',
+            }}>
+            <Flex justify={'space-between'}>
+              <BodyText>Stardust Balance</BodyText>
+              <BodyText>{props.stardust}SD</BodyText>
+            </Flex>
+            <Flex justify={'space-between'}>
+              <BodyText>Payment amount</BodyText>
+              <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
+            </Flex>
+            <Flex
+              justify={'space-between'}
+              style={{
+                borderTop: '1px solid #DFE0EB',
+                paddingTop: '1rem',
+              }}>
+              <BodyText>Balance after payment</BodyText>
+              <BodyText>{props.stardust - 1000}SD</BodyText>
+            </Flex>
+          </Stack>
+          <Stack style={{ width: '80%', padding: '1rem 0' }}>
+            <Subheading1>Confirm Payment</Subheading1>
+            <Checkbox
+              color="violet"
+              radius={'xl'}
+              label={
+                <>
+                  By clicking “Vote now”, you confirm that you have read,
+                  understand, and accepted our{' '}
+                  <Anchor
+                    size="sm"
+                    href="https://mantine.dev"
+                    target="_blank"
+                    color="black"
+                    underline={true}>
+                    Terms of Use
+                  </Anchor>
+                  .
+                </>
+              }
+            />
+          </Stack>
+          <Button
+            style={{ width: '90%', margin: '1rem' }}
+            onClick={() => {
+              setModalOpened(false);
+              setPublishCompleteModal(true);
+            }}>
+            <TbUpload />
+            Publish
+          </Button>
+        </Stack>
+      </Modal>
+      <Modal
+        centered={true}
+        radius={'xl'}
+        opened={publishCompleteModal}
+        onClose={() => setPublishCompleteModal(false)}>
+        <Stack align={'center'}>
+          <TbUpload color="#6200FF" size={36} />
+          <Heading3 style={{ fontWeight: '600' }}>
+            Your Proposal is Published
+          </Heading3>
+
+          <Button
+            style={{ width: '90%', margin: '1rem' }}
+            onClick={() => router.push(`${0}`)}>
+            <TbUpload />
+            View Proposal
+          </Button>
+        </Stack>
+      </Modal>
       <UnstyledButton
         style={{
           marginRight: 'auto',
@@ -120,7 +234,8 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           justifyContent: 'center',
           alignItems: 'center',
           gap: '0.5rem',
-        }}>
+        }}
+        onClick={() => router.back()}>
         <TbChevronLeft size={20} />
         Back
       </UnstyledButton>
@@ -133,7 +248,12 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               placeholder="Which artist is this proposal for?"
               itemComponent={SelectItem}
               valueComponent={ValueItem}
-              data={props.sponsors}
+              // onChange={(e:Artist) => setArtist(e)}
+              data={props.artists.map((artist: Artist) => ({
+                value: artist.companyId,
+                label: artist.name,
+                image: artist.image,
+              }))}
               searchable
               nothingFound="Nobody here"
               maxDropdownHeight={400}
@@ -176,21 +296,32 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               <DatePicker
                 style={{ width: '100%' }}
                 icon={<TbCalendar />}
+                value={startDate}
+                onChange={(date) => date && setStartDate(date)}
                 placeholder="Starting date & time"></DatePicker>
               <DatePicker
                 style={{ width: '100%' }}
                 icon={<TbCalendar />}
+                value={endDate}
+                minDate={startDate}
+                onChange={(date) => date && setEndDate(date)}
                 placeholder="End date & time"></DatePicker>
             </Flex>
           </Stack>
           <Stack className={styles.inputContainer}>
             <Heading3>Title</Heading3>
-            <TextInput placeholder="What are you proposing? (Maximum 100 characters)" />
+            <TextInput
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="What are you proposing? (Maximum 100 characters)"
+            />
           </Stack>
           <Stack className={styles.inputContainer}>
             <Heading3>Description</Heading3>
             <Textarea
               minRows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="What are the details of your proposal?"></Textarea>
           </Stack>
           <Stack className={styles.inputContainer}>
@@ -201,6 +332,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                   multiple
                   maxFiles={5}
                   value={SupportingFiles && SupportingFiles[0]}
+                  type={'file'}
                   onDropAny={(files) => {
                     setSupportingFiles([...files]);
                   }}
@@ -237,7 +369,6 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               </>
             )}
           </Stack>
-          <Button disabled>Upload</Button>
         </Grid.Col>
         <Grid.Col
           md={3}
@@ -261,6 +392,11 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               type="secondary"
               size="md"
               color="black"
+              onClick={async () => {
+                const body = createProposal('Draft');
+                console.log(body);
+                await api.proposal.post('/create', body);
+              }}
               style={{
                 marginLeft: 'auto',
                 marginRight: '0',
@@ -273,6 +409,12 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               type="primary"
               size="md"
               color="purple"
+              onClick={async () => {
+                const body = createProposal('Pending');
+                console.log(body);
+                await api.proposal.post('/create', body);
+                setModalOpened(true);
+              }}
               style={{
                 marginLeft: 'auto',
                 marginRight: '0',
@@ -292,9 +434,10 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           justifyContent: 'center',
           alignItems: 'center',
           gap: '0.5rem',
-        }}>
+        }}
+        onClick={() => window.scrollTo(0, 0)}>
         <TbChevronUp size={25} />
-        Back
+        Back up
       </UnstyledButton>
     </div>
   );
@@ -302,7 +445,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
 
 export const getStaticProps: GetStaticProps<{
   sponsors: any[];
-  artists: any[];
+  artists: Artist[];
   stardust: number;
 }> = async () => ({
   props: {
@@ -330,24 +473,11 @@ export const getStaticProps: GetStaticProps<{
     ],
     artists: [
       {
-        value: 'DJ Soda (Spinnin Asia)',
-        label: 'DJ Soda (Spinnin Asia)',
-        image: '/comment-avatar-1.png',
-      },
-      {
-        value: 'Hannah Lane (Starship Entertainment)',
-        label: 'Hannah Lane (Starship Entertainment)',
-        image: '/comment-avatar-1.png',
-      },
-      {
-        value: 'Satish Patel (Warner Music Asia)',
-        label: 'Satish Patel (Warner Music Asia)',
-        image: '/comment-avatar-1.png',
-      },
-      {
-        value: 'Josh Richardson (Highline Entertainment)',
-        label: 'Josh Richardson (Highline Entertainment)',
-        image: '/comment-avatar-1.png',
+        _id: '1',
+        brand: 'warner Music',
+        companyId: 'Warner Bros Music',
+        name: 'DJ Soda',
+        image: '/Comment-avatar-1.png',
       },
     ],
     stardust: 300,
