@@ -1,11 +1,10 @@
-import React, { Dispatch, SetStateAction } from 'react'
-import { Input, PasswordInput, Stack, TextInput } from '@mantine/core';
+import { Dispatch, SetStateAction } from 'react'
+import { PasswordInput, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useAuth } from '../authContext';
 import Button from '@components/button';
-import { Subheading2 } from '@components/typography';
 import { LoginCredentials } from '../dataTypes';
-
+import styles from '@components/authForm/styles.module.scss'
 
 interface IProps {
   setAuthError: Dispatch<SetStateAction<string | undefined>>
@@ -43,30 +42,22 @@ export const Login = ({setAuthError}: IProps) => {
         }
       })}>
       <Stack spacing={30}>
-        <div>
-          <Input.Label mb={10}>
-            <Subheading2>Email address</Subheading2>
-          </Input.Label>
-          <TextInput
-            {...loginHook.getInputProps('email')}
-            size='lg'
-            radius={10}
-          />
-        </div>
-        <div>
-          <Input.Label mb={10}>
-            <Subheading2>Password</Subheading2>
-          </Input.Label>
-          <PasswordInput
-            {...loginHook.getInputProps('password')}
-            size='lg'
-            radius={10}
-          />
-        </div>
+        <TextInput
+          label="Email address"
+          {...loginHook.getInputProps('email')}
+          size='lg'
+          radius={10}
+        />
+        <PasswordInput 
+          label="Password"
+          {...loginHook.getInputProps('password')}
+          size='lg'
+          radius={10}
+        />
         <Button
+          className={styles.authButton}
           disabled={!(loginHook.isTouched() && loginHook.isValid())}
           size='lg'
-          style={{ borderRadius: '40px', width: '450px' }}
           type="primary"
           color="purple"
         >

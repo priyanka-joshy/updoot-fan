@@ -40,7 +40,6 @@ import {
 } from '@components/typography';
 import Button from '@components/button';
 import StatCard from '@components/statCard';
-import { Artist, Proposal } from 'src/utils/types';
 import { useAuth } from 'src/utils/auth/authContext';
 import Dropzone from '@components/dropzone';
 

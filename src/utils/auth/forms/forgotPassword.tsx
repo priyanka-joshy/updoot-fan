@@ -6,6 +6,7 @@ import Button from "@components/button";
 import { Subheading2 } from "@components/typography";
 import PasswordStrength from "./passwordStrength";
 import { AuthProcessI, PasswordReset } from "../dataTypes";
+import styles from "@components/authForm/styles.module.scss";
 
 interface IProps {
   setFormType: Dispatch<SetStateAction<AuthProcessI>>,
@@ -66,20 +67,16 @@ export const ForgotPassword = ({setAuthError, setFormType}: IProps) => {
         }
       })}>
       <Stack>
-        <div>
-          <Input.Label mb={10}>
-            <Subheading2>Email address</Subheading2>
-          </Input.Label>
-          <TextInput
-            {...forgotPasswordHook.getInputProps('email')}
-            size='lg'
-            radius={10}
-          />
-        </div>
+        <TextInput
+          label="Email address"
+          {...forgotPasswordHook.getInputProps('email')}
+          size='lg'
+          radius={10}
+        />
         <Button
           disabled={!(forgotPasswordHook.isTouched() && forgotPasswordHook.isValid())}
           size='lg'
-          style={{ borderRadius: '40px', width: '450px' }}
+          className={styles.authButton}
           type="primary"
           color="purple"
         >
@@ -107,17 +104,13 @@ export const ForgotPassword = ({setAuthError, setFormType}: IProps) => {
         }
       })}>
       <Stack spacing={30}>
-        <div>
-          <Input.Label mb={10}>
-            <Subheading2>Verification code sent to {formattedEmail}</Subheading2>
-          </Input.Label>
-          <TextInput
-            placeholder='123456'
-            {...submitPasswordHook.getInputProps('code')}
-            size='lg'
-            radius={10}
-          />
-        </div>
+        <TextInput
+          label={`Verification code sent to ${formattedEmail}`}
+          placeholder='123456'
+          {...submitPasswordHook.getInputProps('code')}
+          size='lg'
+          radius={10}
+        />
         <div>
           <Input.Label mb={10}>
             <Subheading2>Password</Subheading2>
@@ -127,20 +120,16 @@ export const ForgotPassword = ({setAuthError, setFormType}: IProps) => {
             onChange={(value: string) => submitPasswordHook.setFieldValue('password', value)}
           />
         </div>
-        <div>
-          <Input.Label mb={10}>
-            <Subheading2>Confirm Password</Subheading2>
-          </Input.Label>
-          <PasswordInput
-            {...submitPasswordHook.getInputProps('confirm_password')}
-            size='lg'
-            radius={10}
-          />
-        </div>
+        <PasswordInput
+          label="Confirm Password"
+          {...submitPasswordHook.getInputProps('confirm_password')}
+          size='lg'
+          radius={10}
+        />
         <Button
           disabled={!(submitPasswordHook.isTouched() && submitPasswordHook.isValid())}
           size='lg'
-          style={{ borderRadius: '40px', width: '450px' }}
+          className={styles.authButton}
           type="primary"
           color="purple"
         >

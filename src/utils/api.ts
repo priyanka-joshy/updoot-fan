@@ -17,19 +17,25 @@ class Api {
     const url = `${this.origin}${this.prefix ?? ''}${endpoint}`;
     const body = data ? JSON.stringify(data) : undefined;
     const headers = { 'Content-Type': 'application/json' };
-    const response = await fetch(url, { method: 'POST', body, headers });
+    const response = await fetch(url, {
+      method: 'POST',
+      body,
+      headers,
+    });
     return await response.json();
   }
 }
 
 class Router {
   auth: Api;
+  campaign: Api;
   comment: Api;
   proposal: Api;
   user: Api;
 
   constructor(origin: string) {
     this.auth = new Api(origin, '/auth');
+    this.campaign = new Api(origin, '/campaign');
     this.comment = new Api(origin, '/comment');
     this.proposal = new Api(origin, '/proposal');
     this.user = new Api(origin, '/user');

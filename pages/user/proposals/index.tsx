@@ -1,60 +1,110 @@
-import { Flex, Stack } from '@mantine/core';
-import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { TbPlus } from 'react-icons/tb';
+import { Flex, SegmentedControl, Stack } from '@mantine/core';
+import {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from 'next';
+import { useEffect, useState } from 'react';
 
-import ProposalCard from '@components/proposalCard';
-import { Heading2, Subheading1 } from '@components/typography';
+import PCCard from '@components/PCCard';
 import Button from '@components/button';
+import { Heading2, Subheading1 } from '@components/typography';
+import { Bookmark, Campaign, Proposal } from 'src/utils/types';
+import api from 'src/utils/api';
+import { withSSRContext } from 'aws-amplify';
 
-const Proposals: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
-  props
-) => {
-  const router = useRouter();
-  const [filter, setFilter] = useState('All');
+const filters = [
+  'Newest',
+  'Artist Campaigns',
+  'Ending Soon',
+  'Trending',
+] as const;
+
+const showTypes = ['Proposals', 'Campaigns'] as const;
+
+const Proposals: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = (props) => {
+  const [filter, setFilter] = useState<typeof filters[number]>('Newest');
+  const [showType, setShowType] =
+    useState<typeof showTypes[number]>('Proposals');
+  const [filteredPC, setFilteredPC] = useState<Proposal[] | Campaign[]>(
+    props.proposals
+  );
+
+  useEffect(() => {
+    const PC = showType === 'Proposals' ? props.proposals : props.campaigns;
+    switch (filter) {
+      case 'Newest':
+        setFilteredPC(
+          PC.sort((a, b) => (a.startTime ?? 0) - (b.startTime ?? 0))
+        );
+        break;
+      case 'Ending Soon':
+        setFilteredPC(PC.sort((a, b) => (a.endTime ?? 0) - (b.endTime ?? 0)));
+        break;
+      case 'Trending':
+        setFilteredPC(
+          PC.sort((a, b) => (a.likes?.length ?? 0) - (b.likes?.length ?? 0))
+        );
+        break;
+    }
+  }, [filter, showType]);
+
   return (
     <Stack>
-      <Flex justify="space-between" align="center">
-        <Heading2>Entertainment 3.0 starts here</Heading2>
-        <Button color="black" onClick={() => router.push('proposals/create')}>
-          <TbPlus style={{ verticalAlign: 'middle' }} />
-        </Button>
-      </Flex>
+      <Heading2>Entertainment 3.0 starts here</Heading2>
       <Subheading1>Discover Proposals</Subheading1>
-      <Flex gap="md" my="md">
-        {['All', 'Artist Campaigns', 'Newest', 'Ending Soon', 'Trending'].map(
-          (value) => (
-            <Button
-              size="sm"
-              color="black"
-              type={filter === value ? 'primary' : 'secondary'}
-              onClick={() => setFilter(value)}>
-              {value}
-            </Button>
-          )
-        )}
+      <Flex gap="md" my="md" align="center">
+        {filters.map((value) => (
+          <Button
+            size="sm"
+            color="black"
+            type={filter === value ? 'primary' : 'secondary'}
+            onClick={() => setFilter(value)}>
+            {value}
+          </Button>
+        ))}
+        <SegmentedControl
+          ml="auto"
+          data={[...showTypes]}
+          onChange={(type: typeof showTypes[number]) => setShowType(type)}
+        />
       </Flex>
       <Flex gap="xl" wrap="wrap">
-        {props.proposals.map((proposal) => (
-          <ProposalCard {...proposal} />
+        {filteredPC.map((pc) => (
+          <PCCard
+            {...pc}
+            bookmarked={
+              showType === 'Proposals'
+                ? props.bookmark?.proposalBookmarks?.includes(pc._id)
+                : props.bookmark?.campaignBookmarks?.includes(pc._id)
+            }
+          />
         ))}
       </Flex>
     </Stack>
   );
 };
 
-export const getStaticProps: GetStaticProps<{
-  proposals: any[];
-}> = async () => ({
-  props: {
-    proposals: new Array(5).fill({}).map((_, index) => ({
-      id: index.toString(),
-      src: '/temp5.png',
-      title:
-        "I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?",
-    })),
-  },
-});
+export const getServerSideProps: GetServerSideProps<{
+  bookmark: Bookmark;
+  campaigns: Campaign[];
+  proposals: Proposal[];
+}> = async (context) => {
+  const SSR = withSSRContext(context);
+  const { email } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
+  const bookmarkRes = await api.user.get(`/bookmark/${email}`);
+  console.log(bookmarkRes);
+  const campaignRes = await api.campaign.get('/all');
+  const proposalRes = await api.proposal.get('/all');
+  return {
+    props: {
+      bookmark: bookmarkRes.message.bookmark,
+      campaigns: campaignRes.message.campaignList,
+      proposals: proposalRes.message.proposalList,
+    },
+  };
+};
 
 export default Proposals;

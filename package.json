@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@aws-amplify/ui-react": "^4.0.3",
     "@emotion/react": "^11.10.5",
     "@emotion/server": "^11.10.0",
     "@mantine/carousel": "^5.8.2",
@@ -20,6 +19,7 @@
     "@mantine/hooks": "^5.8.2",
     "@mantine/next": "^5.8.2",
     "@svgr/webpack": "^6.5.1",
+    "@virtualeconomy/js-vsys": "^0.2.4",
     "aws-amplify": "^5.0.4",
     "chart.js": "^4.0.1",
     "next": "^12.3.3",

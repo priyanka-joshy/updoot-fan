@@ -7,14 +7,22 @@
   object-fit: cover;
 }
 
-.button {
-  width: 100px;
-  color: colors.$black;
-  background-color: colors.$light-gray;
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.phonePicker {
-  * {
-    width: auto;
-  }
+.infoCard {
+  background-color: colors.$bg-gray;
+  border: 1px solid colors.$light-gray;
+  border-radius: 20px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.infoText {
+  color: colors.$medium-gray;
 }

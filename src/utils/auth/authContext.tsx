@@ -1,26 +1,51 @@
-import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import {
-  CognitoUserExt, 
-  LoginCredentials, 
-  ResetPassword, 
-  SignUpCredentials
-} from './dataTypes'
+  CognitoUserExt,
+  LoginCredentials,
+  ResetPassword,
+  SignUpCredentials,
+} from './dataTypes';
 // amplify authentication
 import { Amplify, Auth } from 'aws-amplify';
-import { CognitoUser } from "@aws-amplify/auth";
+import { CognitoUser } from '@aws-amplify/auth';
 import awsExports from '../../../src/aws-exports';
-Amplify.configure(awsExports);
+Amplify.configure({ ...awsExports, ssr: true });
 
 interface AuthContextI {
-  user: CognitoUserExt | null,
-  authLoading: boolean,
-  cognitoLogin: ({ email, password }: LoginCredentials) => Promise<Error | undefined>,
-  cognitoLogout: () => Promise<void>,
-  cognitoRegister: ({ email, password, username, phone_number }: SignUpCredentials) => Promise<CognitoUser | Error>,
-  cognitoConfirmRegistration: (username: string, code: string) => Promise<any>,
-  cognitoResendCode: (email: string) => Promise<void>,
-  cognitoForgotPassword: (email: string) =>  Promise<any>
-  cognitoSubmitNewPassword: ({ email, code, password }: ResetPassword) => Promise<string | Error>
+  user: CognitoUserExt | null;
+  authLoading: boolean;
+  cognitoLogin: ({
+    email,
+    password,
+  }: LoginCredentials) => Promise<Error | undefined>;
+  cognitoLogout: () => Promise<void>;
+  cognitoRegister: ({
+    email,
+    password,
+    username,
+    phone_number,
+  }: SignUpCredentials) => Promise<CognitoUser | Error>;
+  cognitoConfirmRegistration: (username: string, code: string) => Promise<any>;
+  cognitoResendCode: (email: string) => Promise<void>;
+  cognitoForgotPassword: (email: string) => Promise<any>;
+  cognitoSubmitNewPassword: ({
+    email,
+    code,
+    password,
+  }: ResetPassword) => Promise<string | Error>;
+  cognitoChangePassword: ({
+    old_password,
+    new_password,
+  }: {
+    old_password: string;
+    new_password: string;
+  }) => Promise<Error | 'SUCCESS'>;
 }
 
 // auth context
@@ -29,17 +54,17 @@ export const AuthContext = createContext<AuthContextI | null>(null);
 // auth provider
 export function AuthProvider({ children }: { children: ReactNode }) {
   const auth = useCognitoAuth();
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 }
 
 // hook to access auth context
 export const useAuth = () => {
   const authContext = useContext(AuthContext);
   if (authContext === null) {
-    throw new Error("useAuth error");
+    throw new Error('useAuth error');
   }
   return authContext;
-}
+};
 
 const useCognitoAuth = () => {
   const [user, setUser] = useState<CognitoUserExt | null>(null);
@@ -55,9 +80,9 @@ const useCognitoAuth = () => {
         console.log(error);
         setAuthLoading(false);
       }
-    }
+    };
     getCurrentUser();
-  }, [])
+  }, []);
 
   const cognitoLogin = async ({ email, password }: LoginCredentials) => {
     try {
@@ -66,7 +91,7 @@ const useCognitoAuth = () => {
     } catch (error) {
       return error as Error;
     }
-  }
+  };
 
   const cognitoLogout = async () => {
     try {
@@ -74,13 +99,18 @@ const useCognitoAuth = () => {
       setUser(null);
     } catch (error) {
       if (error instanceof Error) {
-        console.log(error.message)
+        console.log(error.message);
       }
-      console.log("Log out error: ", error);
+      console.log('Log out error: ', error);
     }
-  }
+  };
 
-  const cognitoRegister = async ({ email, password, username, phone_number }: SignUpCredentials) => {
+  const cognitoRegister = async ({
+    email,
+    password,
+    username,
+    phone_number,
+  }: SignUpCredentials) => {
     try {
       const { user } = await Auth.signUp({
         username: email,
@@ -88,31 +118,31 @@ const useCognitoAuth = () => {
         attributes: {
           email,
           name: username,
-          phone_number
+          phone_number,
         },
       });
       return user;
     } catch (error) {
       return error as Error;
     }
-  }
+  };
   const cognitoConfirmRegistration = async (username: string, code: string) => {
-    try {      
+    try {
       const res = await Auth.confirmSignUp(username, code);
       return res;
     } catch (error) {
       return error as Error;
     }
-  }
+  };
 
-  const cognitoResendCode = async (email: string ) => {
+  const cognitoResendCode = async (email: string) => {
     try {
       await Auth.resendSignUp(email);
-      alert("Code resent successfully ")
+      alert('Code resent successfully ');
     } catch (err) {
       console.log('Error resending code: ', err);
     }
-  }
+  };
 
   const cognitoForgotPassword = async (email: string) => {
     try {
@@ -121,25 +151,46 @@ const useCognitoAuth = () => {
     } catch (error) {
       return error as Error;
     }
-  }
-  const cognitoSubmitNewPassword = async ({email, code, password}: ResetPassword) => {
+  };
+  const cognitoSubmitNewPassword = async ({
+    email,
+    code,
+    password,
+  }: ResetPassword) => {
     try {
       const data = await Auth.forgotPasswordSubmit(email, code, password);
       return data;
     } catch (error) {
       return error as Error;
     }
-  }
+  };
 
-  return { 
-    user, 
+  const cognitoChangePassword = async ({
+    old_password,
+    new_password,
+  }: {
+    old_password: string;
+    new_password: string;
+  }) => {
+    if (!user) throw new Error('User not authenticated.');
+    try {
+      const data = await Auth.changePassword(user, old_password, new_password);
+      return data;
+    } catch (error) {
+      return error as Error;
+    }
+  };
+
+  return {
+    user,
     authLoading,
-    cognitoLogin, 
-    cognitoLogout, 
-    cognitoRegister, 
-    cognitoConfirmRegistration, 
+    cognitoLogin,
+    cognitoLogout,
+    cognitoRegister,
+    cognitoConfirmRegistration,
     cognitoResendCode,
     cognitoForgotPassword,
-    cognitoSubmitNewPassword
+    cognitoSubmitNewPassword,
+    cognitoChangePassword,
   };
-}
+};
