@@ -1,8 +1,19 @@
 import { Flex, Stack, Tabs, UnstyledButton } from '@mantine/core';
-import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from 'next';
 import { useRouter } from 'next/router';
 import { TbChevronRight } from 'react-icons/tb';
 import { BsStars } from 'react-icons/bs';
+
+import {
+  TokCtrtWithoutSplit,
+  Chain,
+  ChainID,
+  NodeAPI,
+} from '@virtualeconomy/js-vsys';
 
 import styles from 'styles/user/profile.module.scss';
 import {
@@ -12,14 +23,24 @@ import {
   Subheading1,
   Subheading3,
 } from '@components/typography';
-import ProposalCard from '@components/proposalCard';
+import PCCard from '@components/PCCard';
 import VoteRow from '@components/voteRow';
 import Button from '@components/button';
+import api from 'src/utils/api';
+import { Bookmark, Comment, Proposal, User } from 'src/utils/types';
+import { withSSRContext } from 'aws-amplify';
+import { STARDUST_CTRT_ID, TEST_NET } from 'src/utils/constants';
 
-const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
-  props
-) => {
+const Profile: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = (props) => {
   const router = useRouter();
+  const drafts = props.proposals.filter(
+    (proposal) => proposal.status === 'Draft'
+  );
+
+  const bookmarkedProposals: Proposal[] = [];
+
   return (
     <div>
       <Flex justify="space-between" wrap="wrap">
@@ -31,9 +52,9 @@ const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
         </div>
         <Flex align="center" gap="md">
           <Stack align="end" spacing={0}>
-            <Heading4>John Doe</Heading4>
+            <Heading4>{props.user.username}</Heading4>
             <Subheading1 color="#A1A1A1">
-              Joined: {new Date().toLocaleDateString()}
+              Joined: {new Date(props.user.createdAt).toLocaleDateString()}
             </Subheading1>
           </Stack>
           <img
@@ -51,10 +72,12 @@ const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
         onClick={() => router.push('wallet')}>
         <Stack pr="3rem">
           <BodyText>Stardust Wallet</BodyText>
-          <Subheading3 color="#6200FF">Wallet ID: F-90d62Biuq524</Subheading3>
+          <Subheading3 color="#6200FF">
+            Wallet ID: {props.user.walletAddress}
+          </Subheading3>
         </Stack>
         <BsStars size={30} color="#6200FF" />
-        <Heading1> 20000</Heading1>
+        <Heading1>{props.balance}</Heading1>
         <TbChevronRight size={30} />
       </UnstyledButton>
       <Tabs defaultValue="proposals" color="gray">
@@ -84,7 +107,7 @@ const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
             wrap="wrap"
             justify={props.proposals.length === 0 ? 'center' : undefined}>
             {props.proposals.length > 0 ? (
-              props.proposals.map((proposal) => <ProposalCard {...proposal} />)
+              props.proposals.map((proposal) => <PCCard {...proposal} />)
             ) : (
               <Stack align="center" justify="center" h="40vh" w="30%">
                 <img src="/proposalEmpty.png" />
@@ -105,8 +128,8 @@ const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           <Flex
             gap="xl"
             wrap="wrap"
-            justify={props.drafts.length === 0 ? 'center' : undefined}>
-            {props.drafts.length > 0 ? (
+            justify={drafts.length === 0 ? 'center' : undefined}>
+            {drafts.length > 0 ? (
               <></>
             ) : (
               <EmptyState
@@ -146,7 +169,7 @@ const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
             wrap="wrap"
             justify={props.proposals.length === 0 ? 'center' : undefined}>
             {props.proposals.length > 0 ? (
-              props.proposals.map((proposal) => <ProposalCard {...proposal} />)
+              props.proposals.map((proposal) => <PCCard {...proposal} />)
             ) : (
               <EmptyState
                 title="No likes yet."
@@ -160,9 +183,13 @@ const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           <Flex
             gap="xl"
             wrap="wrap"
-            justify={props.bookmarks.length === 0 ? 'center' : undefined}>
-            {props.bookmarks.length > 0 ? (
-              props.bookmarks.map((proposal) => <ProposalCard {...proposal} />)
+            justify={
+              props.bookmark?.proposalBookmarks?.length === 0
+                ? 'center'
+                : undefined
+            }>
+            {bookmarkedProposals.length > 0 ? (
+              bookmarkedProposals.map((proposal) => <PCCard {...proposal} />)
             ) : (
               <EmptyState
                 title="No bookmarks yet."
@@ -185,33 +212,45 @@ const EmptyState = (props: { title: string; text: string }) => (
   </Stack>
 );
 
-export const getStaticProps: GetStaticProps<{
-  proposals: any[];
-  bookmarks: any[];
+export const getServerSideProps: GetServerSideProps<{
+  balance: number;
+  bookmark?: Bookmark;
+  comments: Comment[];
   likes: any[];
-  drafts: any[];
-  comments: any[];
+  proposals: Proposal[];
+  user: User;
   votes: any[];
-}> = () => ({
-  props: {
-    bookmarks: [],
-    likes: [],
-    drafts: [],
-    comments: [],
-    proposals: new Array(0).fill({}).map((_, index) => ({
-      id: index.toString(),
-      src: '/temp5.png',
-      title:
-        "I designed this cover art for Ramengvrl's EP Campaign. What do you guys think?",
-    })),
-    votes: new Array(0).fill({}).map(() => ({
-      title:
-        "I quoted one of Valtina's lyric to a merch. Should we have this for the event?",
-      timestamp: Date.now(),
-      amount: -1000,
-      src: '/temp5.png',
-    })),
-  },
-});
+}> = async (context) => {
+  const SSR = withSSRContext(context);
+  const { email, name } = (await SSR.Auth.currentAuthenticatedUser())
+    .attributes;
+  const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
+  const nodeApi = NodeAPI.new(TEST_NET);
+  const chainId = new ChainID('TEST_NET', ChainID.elems.TEST_NET);
+  const chain = new Chain(nodeApi, chainId);
+  const stardustContract = new TokCtrtWithoutSplit(STARDUST_CTRT_ID, chain);
+  const balance = await stardustContract.getTokBal(user.walletAddress);
+  const bookmarkRes = await api.user.get(`/bookmark/${email}`);
+  const commentRes = await api.comment.get(`/get-by-username/${name}`);
+  const proposalRes = await api.proposal.get(`/user/${email}`);
+  console.log(user);
+  return {
+    props: {
+      balance: +balance.data,
+      bookmark: bookmarkRes.message.bookmark,
+      comments: commentRes.message.comment,
+      likes: [],
+      proposals: proposalRes.message.proposalList,
+      user,
+      votes: new Array(0).fill({}).map(() => ({
+        title:
+          "I quoted one of Valtina's lyric to a merch. Should we have this for the event?",
+        timestamp: Date.now(),
+        amount: -1000,
+        src: '/temp5.png',
+      })),
+    },
+  };
+};
 
 export default Profile;
