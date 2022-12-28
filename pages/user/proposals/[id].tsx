@@ -275,7 +275,7 @@ const Proposal: NextPage<
                   <StatCard
                     data={'D-3'}
                     description={`${getDateDifference(
-                      1671069695
+                      props.endTime ?? 1671069695
                     )} left to vote`}
                     icon={<BiTimeFive size={36} color="#6200FF" />}
                   />

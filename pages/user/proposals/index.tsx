@@ -1,12 +1,17 @@
 import { Flex, SegmentedControl, Stack } from '@mantine/core';
-import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from 'next';
 import { useEffect, useState } from 'react';
 
 import PCCard from '@components/PCCard';
 import Button from '@components/button';
 import { Heading2, Subheading1 } from '@components/typography';
-import { Campaign, Proposal } from 'src/utils/types';
+import { Bookmark, Campaign, Proposal } from 'src/utils/types';
 import api from 'src/utils/api';
+import { withSSRContext } from 'aws-amplify';
 
 const filters = [
   'Newest',
@@ -17,9 +22,9 @@ const filters = [
 
 const showTypes = ['Proposals', 'Campaigns'] as const;
 
-const Proposals: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
-  props
-) => {
+const Proposals: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = (props) => {
   const [filter, setFilter] = useState<typeof filters[number]>('Newest');
   const [showType, setShowType] =
     useState<typeof showTypes[number]>('Proposals');
@@ -67,22 +72,35 @@ const Proposals: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
         />
       </Flex>
       <Flex gap="xl" wrap="wrap">
-        {filteredPC.map((proposal) => (
-          <PCCard {...proposal} />
+        {filteredPC.map((pc) => (
+          <PCCard
+            {...pc}
+            bookmarked={
+              showType === 'Proposals'
+                ? props.bookmark.proposalBookmarks?.includes(pc._id)
+                : props.bookmark.campaignBookmarks?.includes(pc._id)
+            }
+          />
         ))}
       </Flex>
     </Stack>
   );
 };
 
-export const getStaticProps: GetStaticProps<{
+export const getServerSideProps: GetServerSideProps<{
+  bookmark: Bookmark;
   campaigns: Campaign[];
   proposals: Proposal[];
-}> = async () => {
+}> = async (context) => {
+  const SSR = withSSRContext(context);
+  const { email } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
+  const bookmarkRes = await api.user.get(`/bookmark/${email}`);
+  console.log(bookmarkRes);
   const campaignRes = await api.campaign.get('/all');
   const proposalRes = await api.proposal.get('/all');
   return {
     props: {
+      bookmark: bookmarkRes.message.bookmark,
       campaigns: campaignRes.message.campaignList,
       proposals: proposalRes.message.proposalList,
     },

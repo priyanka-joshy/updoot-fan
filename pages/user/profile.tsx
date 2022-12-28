@@ -27,7 +27,7 @@ import PCCard from '@components/PCCard';
 import VoteRow from '@components/voteRow';
 import Button from '@components/button';
 import api from 'src/utils/api';
-import { Bookmark, Comment, Proposal, User } from 'src/utils/types';
+import { Bookmark, Campaign, Comment, Proposal, User } from 'src/utils/types';
 import { withSSRContext } from 'aws-amplify';
 import { STARDUST_CTRT_ID, TEST_NET } from 'src/utils/constants';
 
@@ -184,12 +184,14 @@ const Profile: NextPage<
             gap="xl"
             wrap="wrap"
             justify={
-              props.bookmark?.proposalBookmarks?.length === 0
+              props.bookmarks.proposalBookmarks.length === 0
                 ? 'center'
                 : undefined
             }>
-            {bookmarkedProposals.length > 0 ? (
-              bookmarkedProposals.map((proposal) => <PCCard {...proposal} />)
+            {props.bookmarks.proposalBookmarks.length > 0 ? (
+              props.bookmarks.proposalBookmarks.map((proposal) => (
+                <PCCard {...proposal} bookmarked />
+              ))
             ) : (
               <EmptyState
                 title="No bookmarks yet."
@@ -214,7 +216,7 @@ const EmptyState = (props: { title: string; text: string }) => (
 
 export const getServerSideProps: GetServerSideProps<{
   balance: number;
-  bookmark?: Bookmark;
+  bookmarks: { campaignBookmarks: Campaign[]; proposalBookmarks: Proposal[] };
   comments: Comment[];
   likes: any[];
   proposals: Proposal[];
@@ -233,11 +235,20 @@ export const getServerSideProps: GetServerSideProps<{
   const bookmarkRes = await api.user.get(`/bookmark/${email}`);
   const commentRes = await api.comment.get(`/get-by-username/${name}`);
   const proposalRes = await api.proposal.get(`/user/${email}`);
-  console.log(user);
+  const proposalBookmarks: Proposal[] = [];
+  for (const proposalId of bookmarkRes.message.bookmark.proposalBookmarks) {
+    const { message: proposal } = await api.proposal.get(`/${proposalId}`);
+    proposalBookmarks.push(proposal);
+  }
+  const campaignBookmarks: Campaign[] = [];
+  for (const campaignId of bookmarkRes.message.bookmark.campaignBookmarks) {
+    const { message: campaign } = await api.campaign.get(`/${campaignId}`);
+    proposalBookmarks.push(campaign);
+  }
   return {
     props: {
       balance: +balance.data,
-      bookmark: bookmarkRes.message.bookmark,
+      bookmarks: { proposalBookmarks, campaignBookmarks },
       comments: commentRes.message.comment,
       likes: [],
       proposals: proposalRes.message.proposalList,

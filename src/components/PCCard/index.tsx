@@ -28,13 +28,17 @@ const bookmarkIconProps: SVGAttributes<SVGElement>[] = [
   { fill: '#6200FF', stroke: '#6200FF' },
 ];
 
-const PCCard = (props: Proposal | Campaign) => {
+const PCCard = (
+  props: (Proposal | Campaign) & { liked?: boolean; bookmarked?: boolean }
+) => {
   const router = useRouter();
   const { user } = useAuth();
   const [bookmarkState, setBookmarkState] = useState<ButtonState>(
-    ButtonState.INACTIVE
+    props.bookmarked ? ButtonState.ACTIVE : ButtonState.INACTIVE
   );
-  const [likeState, setLikeState] = useState<ButtonState>(ButtonState.INACTIVE);
+  const [likeState, setLikeState] = useState<ButtonState>(
+    props.liked ? ButtonState.ACTIVE : ButtonState.INACTIVE
+  );
   return (
     <Stack
       className={styles.container}
