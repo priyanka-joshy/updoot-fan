@@ -11,9 +11,12 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { Carousel } from '@mantine/carousel';
-import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
+import {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from 'next';
 import { ParsedUrlQuery } from 'querystring';
-
 import { FiCheckCircle, FiHeart, FiUserCheck } from 'react-icons/fi';
 import { BiLike, BiTimeFive } from 'react-icons/bi';
 import {
@@ -23,6 +26,15 @@ import {
   TbShare,
 } from 'react-icons/tb';
 import { WiStars } from 'react-icons/wi';
+import { withSSRContext } from 'aws-amplify';
+
+import {
+  TokCtrtWithoutSplit,
+  Chain,
+  ChainID,
+  NodeAPI,
+} from '@virtualeconomy/js-vsys';
+
 import StatCard from '@components/statCard';
 import {
   BodyText,
@@ -31,29 +43,12 @@ import {
   Subheading2,
 } from '@components/typography';
 import Button from '@components/button';
-import Dropdown from '@components/dropdown';
+import { Proposal } from 'src/utils/types';
+import api from 'src/utils/api';
+import { TEST_NET, STARDUST_CTRT_ID } from 'src/utils/constants';
 
 interface Params extends ParsedUrlQuery {
   id: string;
-}
-
-interface Comment {
-  image: string;
-  name: string;
-  timestamp: EpochTimeStamp;
-  comment: string;
-}
-
-interface ProposalStats {
-  topic: string;
-  title: string;
-  description: string;
-  likes: number;
-  shares: number;
-  votes: number;
-  stardust: number;
-  expiration: EpochTimeStamp;
-  comments: Comment[];
 }
 
 const getDateDifference = (expiration: EpochTimeStamp) => {
@@ -61,7 +56,10 @@ const getDateDifference = (expiration: EpochTimeStamp) => {
   return `${date.getDay()}d ${date.getHours()}h ${date.getMinutes()}m`;
 };
 
-const Proposal: NextPage<ProposalStats> = (props) => {
+const Proposal: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = (props) => {
+  const [balance, setBalance] = useState(props.balance);
   const [modalOpened, setModalOpened] = useState(false);
 
   return (
@@ -86,7 +84,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
             }}>
             <Flex justify={'space-between'}>
               <BodyText>Stardust Balance</BodyText>
-              <BodyText>{props.stardust}SD</BodyText>
+              <BodyText>{balance}SD</BodyText>
             </Flex>
             <Flex justify={'space-between'}>
               <BodyText>Payment amount</BodyText>
@@ -96,7 +94,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
               justify={'space-between'}
               style={{ borderTop: '1px solid #DFE0EB', paddingTop: '1rem' }}>
               <BodyText>Balance after payment</BodyText>
-              <BodyText>{props.stardust - 1000}SD</BodyText>
+              <BodyText>{balance - props.costPerVote}SD</BodyText>
             </Flex>
           </Stack>
           <Stack style={{ width: '80%', padding: '1rem 0' }}>
@@ -158,7 +156,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
                 borderRadius: 10,
                 textAlign: 'left',
               }}>
-              {props.description}
+              {props.details}
             </BodyText>
 
             <Carousel
@@ -254,7 +252,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
               <Grid grow gutter="sm">
                 <Grid.Col span={6}>
                   <StatCard
-                    data={props.stardust}
+                    data={(props.votes ?? 0) * props.costPerVote}
                     description="Collected Stardust"
                     icon={<WiStars size={36} color="#6200FF" />}
                   />
@@ -268,7 +266,7 @@ const Proposal: NextPage<ProposalStats> = (props) => {
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <StatCard
-                    data={410}
+                    data={props.sponsors.length}
                     description="Proposal Sponsors"
                     icon={<FiUserCheck size={36} color="#6200FF" />}
                   />
@@ -348,31 +346,25 @@ const Proposal: NextPage<ProposalStats> = (props) => {
   );
 };
 
-export const getStaticProps: GetStaticProps<ProposalStats, Params> = async (
-  context
-) => {
+export const getServerSideProps: GetServerSideProps<
+  Proposal & { comments: any[]; balance: number },
+  Params
+> = async (context) => {
   const { id } = context.params!;
+  const proposal = await api.proposal.get(`/${id}`);
+  console.log(proposal);
+  const SSR = withSSRContext(context);
+  const { name } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
+  const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
+  const nodeApi = NodeAPI.new(TEST_NET);
+  const chainId = new ChainID('TEST_NET', ChainID.elems.TEST_NET);
+  const chain = new Chain(nodeApi, chainId);
+  const stardustContract = new TokCtrtWithoutSplit(STARDUST_CTRT_ID, chain);
+  const balance = await stardustContract.getTokBal(user.walletAddress);
   return {
     props: {
-      id,
-      topic: 'RAMENGVRL EP Campaign',
-      title:
-        "I created designed this cover art for Ramengvrl's " +
-        'EP Campaign. What do you guys think?',
-      description:
-        'I loved this idea of a fan-collaborative project ' +
-        'and decided to create my own design for her EP cover. ' +
-        'The idea is inspired by the versatality of RAMENGVRL, ' +
-        'therefore I created this collage and think could be ' +
-        'a great idea for her EP cover. I hand draw each image ' +
-        'with watercolor and scanned it digitally. Visually ' +
-        'it matches the EP theme and has this dynamic exposure ' +
-        'of color. I have also included several variaions...',
-      likes: 530,
-      shares: 290,
-      votes: 410,
-      stardust: 80000,
-      expiration: Date.now() + 1e7,
+      ...proposal.message,
+      balance: +balance.data,
       comments: [
         {
           image: '/temp1.png',
@@ -414,15 +406,6 @@ export const getStaticProps: GetStaticProps<ProposalStats, Params> = async (
         },
       ],
     },
-  };
-};
-
-export const getStaticPaths: GetStaticPaths<Params> = async () => {
-  return {
-    paths: new Array(10000).fill(undefined).map((_, id) => ({
-      params: { id: id.toString() },
-    })),
-    fallback: false,
   };
 };
 
