@@ -378,7 +378,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
             top: '12rem',
             width: '100%',
           }}>
-          <Stack spacing={'lg'}>
+          <Stack spacing={'xl'}>
             <StatCard
               style={{ whiteSpace: 'pre-wrap', alignContent: 'left' }}
               isOnProposalCreate
@@ -394,7 +394,6 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               color="black"
               onClick={async () => {
                 const body = createProposal('Draft');
-                console.log(body);
                 await api.proposal.post('/create', body);
               }}
               style={{
@@ -411,7 +410,6 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               color="purple"
               onClick={async () => {
                 const body = createProposal('Pending');
-                console.log(body);
                 await api.proposal.post('/create', body);
                 setModalOpened(true);
               }}
