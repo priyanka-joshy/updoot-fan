@@ -81,6 +81,8 @@ export interface User {
   role: 'Fan' | 'Staff' | 'Manager';
   username: string;
   walletAddress: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Vote {
