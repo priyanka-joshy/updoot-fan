@@ -1,5 +1,6 @@
 import type { AppProps } from 'next/app';
 import { AppShell } from '@mantine/core';
+import NextNProgress from 'nextjs-progressbar';
 
 import '../styles/_global.scss';
 import Header from '../src/components/header';
@@ -13,9 +14,9 @@ import Head from 'next/head';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-
   return (
     <>
+      <NextNProgress color="#6200ff" />
       <Head>
         <title>Updoot</title>
         <link rel="shortcut icon" href="/logo.svg" />

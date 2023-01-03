@@ -1,5 +1,7 @@
 .container {
-  width: 22rem;
+  width: calc(100vw / 4);
+  height: calc(50vw / 4);
+
   border: 1px solid #ededed;
   border-radius: 1rem;
   overflow: hidden;
@@ -20,7 +22,7 @@
 }
 
 .image {
-  height: 53%;
+  height: 50%;
 }
 
 .corner {

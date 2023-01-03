@@ -31,7 +31,8 @@
 .selectItem {
   padding: 1rem;
   &:hover {
-    border: 1px solid #6200ff;
+    border: 1px solid colors.$primary;
+    color: colors.$primary;
     border-radius: 5px;
   }
 }

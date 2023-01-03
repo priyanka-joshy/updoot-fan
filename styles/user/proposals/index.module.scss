@@ -1,0 +1,11 @@
+.container {
+  display: grid;
+  gap: 1rem 1rem;
+  grid-template-columns: auto auto auto auto;
+}
+
+.avatarImage {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}

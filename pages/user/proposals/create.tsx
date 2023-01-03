@@ -42,19 +42,24 @@ import Button from '@components/button';
 import StatCard from '@components/statCard';
 import { useAuth } from 'src/utils/auth/authContext';
 import Dropzone from '@components/dropzone';
+import { Artist, Proposal } from 'src/utils/types';
 
 const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   props
 ) => {
   const { user: author } = useAuth();
-  const [artist, setArtist] = useState<Artist[]>(props.artists);
-  const [sponsors, setSponsors] = useState<string[]>([]);
+  const [artist, setArtist] = useState<Artist[]>([]);
+  const [sponsors, setSponsors] = useState<Artist[]>([]);
+  const [availableSponsors, setAvailableSponsors] = useState<Artist[]>([]);
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [titleImage, setTitleImage] = useState<File | null>();
+  // titleImage => uploaded on aws bucket, link sent to heroku db
   const [SupportingFiles, setSupportingFiles] = useState<File[]>([]);
+  // SupportFiles => uploaded on aws bucket, link sent to heroku db
+  const [proposalId, setProposalId] = useState<string>('0');
   const [modalOpened, setModalOpened] = useState(false);
   const [publishCompleteModal, setPublishCompleteModal] = useState(false);
   const router = useRouter();
@@ -63,6 +68,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   interface ItemProps extends React.ComponentPropsWithoutRef<'div'> {
     image: string;
     label: string;
+    value: string;
   }
 
   const createProposal = (status: 'Pending' | 'Draft') => {
@@ -73,21 +79,25 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
       artistId: artist.map((a) => a._id),
       companyId: 'companyId',
       brand: 'brand',
-      sponsors: artist.map((a) => a._id),
-      author: author?.attributes.name,
+      sponsors: sponsors.map((a) => a._id),
+      author: author?.attributes.email,
       titleImage: 'test',
       status: status,
+      // startTime, endTime
     };
+    console.log(body);
     return body;
   };
   const SelectItem = forwardRef<HTMLDivElement, ItemProps>(
-    ({ image, label, ...others }: ItemProps, ref) => (
+    ({ image, label, value, ...others }: ItemProps, ref) => (
       <div ref={ref} {...others}>
         <div className={styles.selectItem}>
           <Group noWrap>
             <Avatar src={image} />
             <div>
-              <Text>{label}</Text>
+              <Text>
+                {value} ({label})
+              </Text>
             </div>
           </Group>
         </div>
@@ -120,7 +130,9 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           }}>
           <Avatar className={styles.logo} src={image} />
 
-          <Box sx={{ lineHeight: 1, fontSize: 12 }}>{label}</Box>
+          <Box sx={{ lineHeight: 1, fontSize: 12 }}>
+            {value}({label})
+          </Box>
           <CloseButton
             onMouseDown={onRemove}
             variant="transparent"
@@ -132,7 +144,6 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
       </div>
     );
   }
-
   return (
     <div>
       <Modal
@@ -176,12 +187,13 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           <Stack style={{ width: '80%', padding: '1rem 0' }}>
             <Subheading1>Confirm Payment</Subheading1>
             <Checkbox
+              required
               color="violet"
               radius={'xl'}
               label={
                 <>
                   By clicking “Vote now”, you confirm that you have read,
-                  understand, and accepted our{' '}
+                  understand, and accepted our
                   <Anchor
                     size="sm"
                     href="https://mantine.dev"
@@ -197,7 +209,10 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           </Stack>
           <Button
             style={{ width: '90%', margin: '1rem' }}
-            onClick={() => {
+            onClick={async () => {
+              const body = createProposal('Pending');
+              const res = await api.proposal.post('/create', body);
+              setProposalId(res.message.proposalId);
               setModalOpened(false);
               setPublishCompleteModal(true);
             }}>
@@ -219,7 +234,9 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
 
           <Button
             style={{ width: '90%', margin: '1rem' }}
-            onClick={() => router.push(`${0}`)}>
+            onClick={() => {
+              router.replace(`/user/proposals/${proposalId}`);
+            }}>
             <TbUpload />
             View Proposal
           </Button>
@@ -247,11 +264,23 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               placeholder="Which artist is this proposal for?"
               itemComponent={SelectItem}
               valueComponent={ValueItem}
-              // onChange={(e:Artist) => setArtist(e)}
-              data={props.artists.map((artist: Artist) => ({
-                value: artist.companyId,
-                label: artist.name,
+              onChange={(selectedItems) => {
+                const artistlist: Artist[] = [];
+                selectedItems.forEach((item) => {
+                  let temp = props.artists.find(
+                    (artist) => artist.name === item
+                  )!;
+
+                  artistlist.push(temp);
+                });
+                setArtist(artistlist);
+                //filter sponsorlist for valid sponsors from same artist company
+              }}
+              data={props.artists.map((artist: Artist, key) => ({
+                value: artist.name,
+                label: artist.companyId,
                 image: artist.image,
+                id: key,
               }))}
               searchable
               nothingFound="Nobody here"
@@ -262,14 +291,28 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               }
             />
           </Stack>
-
           <Stack className={styles.inputContainer}>
             <Heading3>Sponsors</Heading3>
             <MultiSelect
               placeholder="Type the artist name to find a related sponsor"
               itemComponent={SelectItem}
               valueComponent={ValueItem}
-              data={props.sponsors}
+              data={props.sponsors.map((sponsor: Artist, key) => ({
+                value: sponsor.name,
+                label: sponsor.companyId,
+                image: sponsor.image,
+                id: key,
+              }))}
+              onChange={(selectedItems) => {
+                const sponsorlist: Artist[] = [];
+                selectedItems.forEach((item) => {
+                  let temp = props.sponsors.find(
+                    (sponsor) => sponsor.name === item
+                  )!;
+                  sponsorlist.push(temp);
+                });
+                setSponsors(sponsorlist);
+              }}
               searchable
               nothingFound="No Sponsors"
               maxDropdownHeight={400}
@@ -343,6 +386,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               <>
                 {SupportingFiles.map((file, i) => (
                   <Box
+                    key={i}
                     sx={{ border: '1px solid #A1A1A1' }}
                     style={{ borderRadius: '0.5rem' }}>
                     <Flex
@@ -380,7 +424,6 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           <Stack spacing={'xl'}>
             <StatCard
               style={{ whiteSpace: 'pre-wrap', alignContent: 'left' }}
-              isOnProposalCreate
               description={`The more detailed your proposal is, the fewer STARDUST will be needed.\n\nPro Tip: Pick a sponsor to participate in the campaign to improve your credibility.This will help you level up faster! `}
               data={''}
             />
@@ -441,31 +484,33 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
 };
 
 export const getStaticProps: GetStaticProps<{
-  sponsors: any[];
+  sponsors: Artist[];
   artists: Artist[];
   stardust: number;
 }> = async () => ({
   props: {
+    // get sponsors and artists list
     sponsors: [
       {
-        value: 'DJ Soda (Spinnin Asia)',
-        label: 'DJ Soda (Spinnin Asia)',
-        image: '/comment-avatar-1.png',
+        _id: '1',
+        brand: "Spinnin' Asia",
+        companyId: "Spinnin' Asia",
+        name: 'Emma Smith',
+        image: '/Comment-avatar-1.png',
       },
       {
-        value: 'Hannah Lane (Starship Entertainment)',
-        label: 'Hannah Lane (Starship Entertainment)',
-        image: '/comment-avatar-1.png',
+        _id: '2',
+        brand: 'warner Music',
+        companyId: 'Warner Bros Music',
+        name: 'Satish Patel',
+        image: '/Comment-avatar-1.png',
       },
       {
-        value: 'Satish Patel (Warner Music Asia)',
-        label: 'Satish Patel (Warner Music Asia)',
-        image: '/comment-avatar-1.png',
-      },
-      {
-        value: 'Josh Richardson (Highline Entertainment)',
-        label: 'Josh Richardson (Highline Entertainment)',
-        image: '/comment-avatar-1.png',
+        _id: '3',
+        brand: 'Starship Entertainment',
+        companyId: 'Starship Entertainment',
+        name: 'Hannah Lane',
+        image: '/Comment-avatar-1.png',
       },
     ],
     artists: [
@@ -474,6 +519,20 @@ export const getStaticProps: GetStaticProps<{
         brand: 'warner Music',
         companyId: 'Warner Bros Music',
         name: 'DJ Soda',
+        image: '/Comment-avatar-1.png',
+      },
+      {
+        _id: '2',
+        brand: 'warner Music',
+        companyId: 'Warner Bros Music',
+        name: 'Empira',
+        image: '/Comment-avatar-1.png',
+      },
+      {
+        _id: '3',
+        brand: 'warner Music',
+        companyId: 'Warner Bros Music',
+        name: 'Gotez',
         image: '/Comment-avatar-1.png',
       },
     ],

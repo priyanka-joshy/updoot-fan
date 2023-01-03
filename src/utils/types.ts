@@ -49,6 +49,14 @@ export interface Comment {
   type: 'Campaign' | 'Proposal';
   typeId: string;
   username: string;
+  createdAt: string;
+}
+
+export interface Like {
+  type: string;
+  typeid: string;
+  username: string;
+  timestamp: number;
 }
 
 export interface Proposal extends PCBase {
