@@ -8,7 +8,6 @@ interface IProps extends FlexProps {
   data: string | number;
   description: string;
   icon?: JSX.Element;
-  isOnProposalCreate?: boolean;
 }
 
 const StatCard = (props: IProps) => {
@@ -18,11 +17,7 @@ const StatCard = (props: IProps) => {
       <Text weight={600} size={24} align="center">
         {props.data.toString()}
       </Text>
-      <Text
-        color="#5C5C5C"
-        align={props.isOnProposalCreate ? 'left' : 'center'}>
-        {props.description}
-      </Text>
+      <Text color="#5C5C5C">{props.description}</Text>
     </div>
   );
 };

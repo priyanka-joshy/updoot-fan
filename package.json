@@ -23,6 +23,7 @@
     "aws-amplify": "^5.0.4",
     "chart.js": "^4.0.1",
     "next": "^12.3.3",
+    "nextjs-progressbar": "^0.0.16",
     "react": "18.2.0",
     "react-chartjs-2": "^5.0.1",
     "react-dom": "18.2.0",

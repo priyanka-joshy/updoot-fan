@@ -43,7 +43,11 @@ const PCCard = (
     <Stack
       className={styles.container}
       onClick={() => router.push(`proposals/${props._id}`)}>
-      <img src={props.titleImage} className={styles.image} />
+      {props.titleImage ? (
+        <img src="/authPageLogo.svg" className={styles.image} />
+      ) : (
+        <img src={props.titleImage} className={styles.image} />
+      )}
       <Stack px="lg" pb="xs">
         <Subheading3>{props.title}</Subheading3>
         <Flex gap="sm" className={styles.bottom}>

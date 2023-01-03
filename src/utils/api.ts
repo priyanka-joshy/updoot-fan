@@ -32,6 +32,7 @@ class Router {
   comment: Api;
   proposal: Api;
   user: Api;
+  like: Api;
 
   constructor(origin: string) {
     this.auth = new Api(origin, '/auth');
@@ -39,6 +40,7 @@ class Router {
     this.comment = new Api(origin, '/comment');
     this.proposal = new Api(origin, '/proposal');
     this.user = new Api(origin, '/user');
+    this.like = new Api(origin, '/like');
   }
 }
 

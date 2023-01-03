@@ -1,11 +1,12 @@
+@use 'styles/colors';
+
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
-  background-color: #f0f0f0;
-
+  background-color: colors.$bg-gray;
   flex: 1;
   min-height: fit-content;
 
