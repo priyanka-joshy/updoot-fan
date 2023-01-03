@@ -47,7 +47,8 @@ body {
 }
 
 // Override mantine input fields
-.mantine-TextInput-input, .mantine-PasswordInput-input {
+.mantine-TextInput-input,
+.mantine-PasswordInput-input {
   @include typography.text-options(18px, 400, 22px);
 }
 
@@ -62,12 +63,9 @@ body {
   }
 }
 
-.mantine-MultiSelect-input {
-  padding: 1rem;
-}
-
 .mantine-TextInput-input {
-  padding: 1rem;
+  padding: 1.5rem 1rem;
+  font-size: 14px;
 }
 
 .mantine-Textarea-input {
@@ -75,7 +73,7 @@ body {
 }
 
 .mantine-DatePicker-input {
-  padding: 2rem;
+  padding: 1rem 2rem;
 }
 
 .mantine-InputWrapper-label {

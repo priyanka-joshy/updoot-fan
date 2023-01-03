@@ -25,6 +25,7 @@ export interface Artist {
   brand: string;
   companyId: string;
   name: string;
+  image: string;
 }
 
 export interface Bookmark {

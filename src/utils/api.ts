@@ -17,7 +17,11 @@ class Api {
     const url = `${this.origin}${this.prefix ?? ''}${endpoint}`;
     const body = data ? JSON.stringify(data) : undefined;
     const headers = { 'Content-Type': 'application/json' };
-    const response = await fetch(url, { method: 'POST', body, headers });
+    const response = await fetch(url, {
+      method: 'POST',
+      body,
+      headers,
+    });
     return await response.json();
   }
 }
@@ -38,5 +42,6 @@ class Router {
   }
 }
 
+// export const BACKEND_URL = 'http://localhost:8000';
 export const BACKEND_URL = 'https://updoot-backend-test-rev.herokuapp.com';
 export default new Router(`${BACKEND_URL}/api`);
