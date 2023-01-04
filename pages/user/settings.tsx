@@ -235,7 +235,7 @@ const Settings = ({currentProfilePhoto}: IProps) => {
             </div>
             <PasswordInput label="Confirm password" radius={10} size="lg" {...changePasswordHook.getInputProps('confirm_password')} w={'100%'} />
 
-            <Button type="primary" color="black" size="md">
+            <Button type="primary" color="black" style={{width: "100%"}}>
               Reset Password
             </Button>
           </Stack>
