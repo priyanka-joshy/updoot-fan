@@ -48,6 +48,7 @@ import Button from '@components/button';
 import { Proposal } from 'src/utils/types';
 import api from 'src/utils/api';
 import { TEST_NET, STARDUST_CTRT_ID } from 'src/utils/constants';
+import { getProfilePicture } from 'src/utils/storage';
 
 interface Params extends ParsedUrlQuery {
   id: string;
@@ -209,9 +210,10 @@ const Proposal: NextPage<
               <Flex align={'center'} gap="sm">
                 <img
                   style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                  src="/temp2.png"
+                  src={props.profilePicture}
+                  alt="Profile Picture"
                 />
-                <Subheading2>Johndoe1234</Subheading2>
+                <Subheading2>{props.username}</Subheading2>
               </Flex>
               <Textarea
                 radius="md"
@@ -355,7 +357,7 @@ const Proposal: NextPage<
 };
 
 export const getServerSideProps: GetServerSideProps<
-  Proposal & { comments: any[]; balance: number },
+  Proposal & { comments: any[]; balance: number, username: string, profilePicture: string },
   Params
 > = async (context) => {
   const { id } = context.params!;
@@ -369,10 +371,14 @@ export const getServerSideProps: GetServerSideProps<
   const chain = new Chain(nodeApi, chainId);
   const stardustContract = new TokCtrtWithoutSplit(STARDUST_CTRT_ID, chain);
   const balance = await stardustContract.getTokBal(user.walletAddress);
+  // get profile picture from s3 bucket
+  const currentProfilePhoto = await getProfilePicture(user.profilePicture);
   return {
     props: {
       ...proposal.message,
       balance: +balance.data,
+      username: name,
+      profilePicture: currentProfilePhoto,
       comments: [
         {
           image: '/temp1.png',
