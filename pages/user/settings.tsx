@@ -1,4 +1,4 @@
-import { Flex, Input, Loader, Modal, PasswordInput, Stack, UnstyledButton } from '@mantine/core';
+import { Container, Flex, Input, Loader, Modal, PasswordInput, Stack, UnstyledButton } from '@mantine/core';
 import { GetServerSidePropsContext } from 'next';
 import { Dispatch, ReactNode, SetStateAction, useRef, useState } from 'react';
 import Button from '@components/button';
@@ -7,11 +7,12 @@ import { useAuth } from 'src/utils/auth/authContext';
 import styles from 'styles/user/settings.module.scss';
 import Link from 'next/link';
 import { TbChevronLeft, TbCircleCheck, TbTrashX } from 'react-icons/tb';
-import { uploadFile } from 'src/utils/storage';
+import { getProfilePicture, uploadFile } from 'src/utils/storage';
 import PasswordStrength from 'src/utils/auth/forms/passwordStrength';
 import { useChangePassword } from 'src/utils/auth/forms/hooks';
 import { useRouter } from 'next/router';
-import { Auth } from 'aws-amplify';
+import { Auth, withSSRContext } from 'aws-amplify';
+import api from 'src/utils/api';
 
 const emptyPhoto = "/emptyPhoto.png";
 const maxFileSize = 10000000;
@@ -265,18 +266,20 @@ const Settings = ({currentProfilePhoto}: IProps) => {
           ))}
         </Stack>
         {/* Save / Delete Account */}
-        <Stack w={'30%'} spacing={48}>
-          <Button type="primary" color="purple" size="lg" style={{ width: '100%' }} onClick={()=>handleSaveChanges()} disabled={currentPhoto===currentProfilePhoto && !newPassword}>
-            Save
-          </Button>
-          <UnstyledButton className={styles.infoCard} onClick={()=>{setStatus("delete"); setMsgModal(true)}}>
-            <Flex align="center" gap={8}>
-              <TbTrashX size={20}/>
-              <Subheading2>Delete account</Subheading2>
-            </Flex>
-            <Subheading2>Please note, after confirmation, this action cannot be undone</Subheading2>
-          </UnstyledButton>
-        </Stack>
+        <Container w={'30%'} p={0} m={0}>
+          <Stack spacing={48} pos="sticky" top={"15%"}>
+            <Button type="primary" color="purple" size="lg" style={{ width: '100%' }} onClick={()=>handleSaveChanges()} disabled={currentPhoto===currentProfilePhoto && !newPassword}>
+              Save
+            </Button>
+            <UnstyledButton className={styles.infoCard} onClick={()=>{setStatus("delete"); setMsgModal(true)}}>
+              <Flex align="center" gap={8}>
+                <TbTrashX size={20}/>
+                <Subheading2>Delete account</Subheading2>
+              </Flex>
+              <Subheading2>Please note, after confirmation, this action cannot be undone</Subheading2>
+            </UnstyledButton>
+          </Stack>
+        </Container>
       </Flex>
     </Stack>
   );
@@ -284,15 +287,16 @@ const Settings = ({currentProfilePhoto}: IProps) => {
 
 export default Settings;
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const SSR = withSSRContext(context);
+  const { name } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
   // get filepath of current profile picture from db
-  const photoURL = 'https://cdn.dribbble.com/users/9578072/screenshots/16902417/media/ceea4b54f32875615939394374c2c108.png?compress=1&resize=1600x1200&vertical=top';
-  // const currentProfilePhoto = await getUploadedFile(photoURL);
-  
+  const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
+  // get file from s3 bucket
+  const currentProfilePhoto = await getProfilePicture(user.profilePicture);
   return {
     props: {
-      currentProfilePhoto: photoURL
-      // currentProfilePhoto: currentProfilePhoto instanceof Error? emptyPhoto : currentProfilePhoto
+      currentProfilePhoto
     }
   }
-}
+};
