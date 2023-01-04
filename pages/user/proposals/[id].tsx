@@ -357,7 +357,12 @@ const Proposal: NextPage<
 };
 
 export const getServerSideProps: GetServerSideProps<
-  Proposal & { comments: any[]; balance: number, username: string, profilePicture: string },
+  Proposal & {
+    comments: any[];
+    balance: number;
+    username: string;
+    profilePicture: string;
+  },
   Params
 > = async (context) => {
   const { id } = context.params!;

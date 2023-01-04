@@ -1,12 +1,14 @@
-import { Storage } from "aws-amplify";
+import { Storage } from 'aws-amplify';
 
 // upload file to s3 bucket
 const uploadFile = async (
   userEmail: string,
-  folderPrefix: string, 
-  file: File,
+  folderPrefix: string,
+  file: File
 ) => {
-  const filepath = `${userEmail}/${folderPrefix}/${(new Date()).toISOString()}--${file.name}`;
+  const filepath = `${userEmail}/${folderPrefix}/${new Date().toISOString()}--${
+    file.name
+  }`;
 
   try {
     const result = await Storage.put(filepath, file, {
