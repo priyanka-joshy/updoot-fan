@@ -44,11 +44,8 @@ const Profile: NextPage<
         <Flex align="center" gap="md" className={styles.card}>
           <img
             className={styles.image}
-            src={
-              'https://img.freepik.com/free-vector/' +
-              'cute-rabbit-with-duck-working-laptop-' +
-              'cartoon-illustration_56104-471.jpg?w=2000'
-            }
+            src={props.profilePicture}
+            alt="Profile Picture"
           />
           <Stack spacing={0}>
             <Heading4>{props.user.username}</Heading4>
@@ -223,6 +220,7 @@ export const getServerSideProps: GetServerSideProps<{
   likes: any[];
   proposals: Proposal[];
   user: User;
+  profilePicture: string;
   votes: any[];
 }> = async (context) => {
   const SSR = withSSRContext(context);
@@ -245,6 +243,7 @@ export const getServerSideProps: GetServerSideProps<{
     const { message: campaign } = await api.campaign.get(`/${campaignId}`);
     proposalBookmarks.push(campaign);
   }
+  const currentProfilePhoto = await getProfilePicture(user.profilePicture);
   return {
     props: {
       balance,

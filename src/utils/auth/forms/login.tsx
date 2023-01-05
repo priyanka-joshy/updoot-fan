@@ -1,16 +1,16 @@
-import { Dispatch, SetStateAction } from 'react'
+import { Dispatch, SetStateAction } from 'react';
 import { PasswordInput, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useAuth } from '../authContext';
 import Button from '@components/button';
 import { LoginCredentials } from '../dataTypes';
-import styles from '@components/authForm/styles.module.scss'
+import styles from '@components/authForm/styles.module.scss';
 
 interface IProps {
-  setAuthError: Dispatch<SetStateAction<string | undefined>>
+  setAuthError: Dispatch<SetStateAction<string | undefined>>;
 }
 
-export const Login = ({setAuthError}: IProps) => {
+export const Login = ({ setAuthError }: IProps) => {
   const { cognitoLogin } = useAuth();
 
   const loginHook = useForm<LoginCredentials>({
@@ -45,25 +45,24 @@ export const Login = ({setAuthError}: IProps) => {
         <TextInput
           label="Email address"
           {...loginHook.getInputProps('email')}
-          size='lg'
+          size="lg"
           radius={10}
         />
-        <PasswordInput 
+        <PasswordInput
           label="Password"
           {...loginHook.getInputProps('password')}
-          size='lg'
+          size="lg"
           radius={10}
         />
         <Button
           className={styles.authButton}
           disabled={!(loginHook.isTouched() && loginHook.isValid())}
-          size='lg'
+          size="lg"
           type="primary"
-          color="purple"
-        >
+          color="purple">
           Login
         </Button>
       </Stack>
     </form>
-  )
-}
+  );
+};

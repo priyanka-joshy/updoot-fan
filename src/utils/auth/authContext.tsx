@@ -15,10 +15,13 @@ import {
 import { Amplify, Auth } from 'aws-amplify';
 import { CognitoUser } from '@aws-amplify/auth';
 import awsExports from '../../../src/aws-exports';
+import api from '../api';
+import { User } from '../types';
 Amplify.configure({ ...awsExports, ssr: true });
 
 interface AuthContextI {
   user: CognitoUserExt | null;
+  userInfo: User | undefined;
   authLoading: boolean;
   cognitoLogin: ({
     email,
@@ -68,6 +71,7 @@ export const useAuth = () => {
 
 const useCognitoAuth = () => {
   const [user, setUser] = useState<CognitoUserExt | null>(null);
+  const [userInfo, setUserInfo] = useState<User>();
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
@@ -75,6 +79,10 @@ const useCognitoAuth = () => {
       try {
         const currentUser = await Auth.currentAuthenticatedUser();
         setUser(currentUser);
+        const { message: userData }: { message: User } = await api.user.get(
+          `/getUserByUsername/${currentUser.attributes.name}`
+        );
+        setUserInfo(userData);
         setAuthLoading(false);
       } catch (error) {
         console.log(error);
@@ -183,6 +191,7 @@ const useCognitoAuth = () => {
 
   return {
     user,
+    userInfo,
     authLoading,
     cognitoLogin,
     cognitoLogout,

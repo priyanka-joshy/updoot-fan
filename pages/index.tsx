@@ -5,7 +5,6 @@ import AuthForm from '../src/components/authForm';
 import { useAuth } from '../src/utils/auth/authContext';
 import { handleUserType } from 'src/utils/auth/handleUserAccess';
 
-
 const Home = () => {
   const { user, authLoading } = useAuth();
   const router = useRouter();
@@ -13,12 +12,11 @@ const Home = () => {
   if (authLoading || user) {
     user && router.push(handleUserType(user).dashboardLink);
     return (
-      <div className='authLoader'>
+      <div className="authLoader">
         <Loader color="violet" size="lg" />
       </div>
     );
   }
-
 
   return (
     <AuthLayout>

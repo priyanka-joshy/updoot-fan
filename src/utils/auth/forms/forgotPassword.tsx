@@ -1,24 +1,28 @@
-import { useForm } from "@mantine/form";
-import { Dispatch, SetStateAction, useState } from "react";
-import { useAuth } from "../authContext";
-import { Input, PasswordInput, Stack, TextInput } from "@mantine/core";
-import Button from "@components/button";
-import { Subheading2 } from "@components/typography";
-import PasswordStrength from "./passwordStrength";
-import { AuthProcessI, PasswordReset } from "../dataTypes";
-import styles from "@components/authForm/styles.module.scss";
+import { useForm } from '@mantine/form';
+import { Dispatch, SetStateAction, useState } from 'react';
+import { useAuth } from '../authContext';
+import { Input, PasswordInput, Stack, TextInput } from '@mantine/core';
+import Button from '@components/button';
+import { Subheading2 } from '@components/typography';
+import PasswordStrength from './passwordStrength';
+import { AuthProcessI, PasswordReset } from '../dataTypes';
+import styles from '@components/authForm/styles.module.scss';
 
 interface IProps {
-  setFormType: Dispatch<SetStateAction<AuthProcessI>>,
-  setAuthError: Dispatch<SetStateAction<string | undefined>>
+  setFormType: Dispatch<SetStateAction<AuthProcessI>>;
+  setAuthError: Dispatch<SetStateAction<string | undefined>>;
 }
 
-export const ForgotPassword = ({setAuthError, setFormType}: IProps) => {
-  const {cognitoForgotPassword, cognitoSubmitNewPassword} = useAuth();
-  const [step, setStep] = useState<1|2>(1);
+export const ForgotPassword = ({ setAuthError, setFormType }: IProps) => {
+  const { cognitoForgotPassword, cognitoSubmitNewPassword } = useAuth();
+  const [step, setStep] = useState<1 | 2>(1);
   const [userEmail, setUserEmail] = useState<string>();
-  const formattedEmail = userEmail && (userEmail.split('@')[0]).slice(0,3) + '*'.repeat(userEmail.split('@')[0].length-3) +'@'+ userEmail.split('@')[1];
-
+  const formattedEmail =
+    userEmail &&
+    userEmail.split('@')[0].slice(0, 3) +
+      '*'.repeat(userEmail.split('@')[0].length - 3) +
+      '@' +
+      userEmail.split('@')[1];
 
   const forgotPasswordHook = useForm<{ email: string }>({
     initialValues: {
@@ -70,16 +74,17 @@ export const ForgotPassword = ({setAuthError, setFormType}: IProps) => {
         <TextInput
           label="Email address"
           {...forgotPasswordHook.getInputProps('email')}
-          size='lg'
+          size="lg"
           radius={10}
         />
         <Button
-          disabled={!(forgotPasswordHook.isTouched() && forgotPasswordHook.isValid())}
-          size='lg'
+          disabled={
+            !(forgotPasswordHook.isTouched() && forgotPasswordHook.isValid())
+          }
+          size="lg"
           className={styles.authButton}
           type="primary"
-          color="purple"
-        >
+          color="purple">
           Next
         </Button>
       </Stack>
@@ -106,9 +111,9 @@ export const ForgotPassword = ({setAuthError, setFormType}: IProps) => {
       <Stack spacing={30}>
         <TextInput
           label={`Verification code sent to ${formattedEmail}`}
-          placeholder='123456'
+          placeholder="123456"
           {...submitPasswordHook.getInputProps('code')}
-          size='lg'
+          size="lg"
           radius={10}
         />
         <div>
@@ -117,32 +122,33 @@ export const ForgotPassword = ({setAuthError, setFormType}: IProps) => {
           </Input.Label>
           <PasswordStrength
             value={submitPasswordHook.values.password}
-            onChange={(value: string) => submitPasswordHook.setFieldValue('password', value)}
+            onChange={(value: string) =>
+              submitPasswordHook.setFieldValue('password', value)
+            }
           />
         </div>
         <PasswordInput
           label="Confirm Password"
           {...submitPasswordHook.getInputProps('confirm_password')}
-          size='lg'
+          size="lg"
           radius={10}
         />
         <Button
-          disabled={!(submitPasswordHook.isTouched() && submitPasswordHook.isValid())}
-          size='lg'
+          disabled={
+            !(submitPasswordHook.isTouched() && submitPasswordHook.isValid())
+          }
+          size="lg"
           className={styles.authButton}
           type="primary"
-          color="purple"
-        >
+          color="purple">
           Confirm
         </Button>
       </Stack>
     </form>
   );
-  const resetPassword: Record<1|2, JSX.Element> = {
-    1: forgotPasswordForm, 
-    2: submitPasswordForm
-  }
-  return (
-    <div>{resetPassword[step]}</div>
-  )
-}
+  const resetPassword: Record<1 | 2, JSX.Element> = {
+    1: forgotPasswordForm,
+    2: submitPasswordForm,
+  };
+  return <div>{resetPassword[step]}</div>;
+};

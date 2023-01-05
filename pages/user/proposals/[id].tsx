@@ -60,6 +60,7 @@ const Proposal: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = (props) => {
   const [balance, setBalance] = useState(props.balance);
+  const [termsConfirmed, setTermsConfirmed] = useState(false);
   const [modalOpened, setModalOpened] = useState(false);
   const [successModalOpened, setSuccessModalOpened] = useState(false);
   const [imageModalOpened, setImageModalOpened] = useState(false);
@@ -161,7 +162,9 @@ const Proposal: NextPage<
             </Flex>
             <Flex justify={'space-between'}>
               <BodyText>Payment amount</BodyText>
-              <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
+              <BodyText style={{ fontWeight: '700' }}>
+                {props.costPerVote}SD
+              </BodyText>
             </Flex>
             <Flex
               justify={'space-between'}
@@ -176,6 +179,10 @@ const Proposal: NextPage<
               required
               color="violet"
               radius={'xl'}
+              checked={termsConfirmed}
+              onChange={(event) =>
+                setTermsConfirmed(event.currentTarget.checked)
+              }
               label={
                 <>
                   By clicking “Vote now”, you confirm that you have read,
@@ -196,9 +203,13 @@ const Proposal: NextPage<
 
           <Button
             style={{ width: '90%', margin: '1rem' }}
+            disabled={!termsConfirmed}
             onClick={() => {
+              api.proposal.post('/vote', {
+                username: props.username,
+                typeId: props._id,
+              });
               setModalOpened(false);
-              setSuccessModalOpened(true);
             }}>
             <TbHandStop />
             Vote Now
@@ -325,7 +336,8 @@ const Proposal: NextPage<
               <Flex align={'center'} gap="sm">
                 <img
                   style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                  src="/temp2.png"
+                  src={props.profilePicture}
+                  alt="Profile Picture"
                 />
                 <Subheading2>{props.username}</Subheading2>
               </Flex>
