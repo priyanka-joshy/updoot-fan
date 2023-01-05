@@ -63,6 +63,7 @@ const Proposal: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = (props) => {
   const [balance, setBalance] = useState(props.balance);
+  const [termsConfirmed, setTermsConfirmed] = useState(false);
   const [modalOpened, setModalOpened] = useState(false);
   const router = useRouter();
 
@@ -92,7 +93,9 @@ const Proposal: NextPage<
             </Flex>
             <Flex justify={'space-between'}>
               <BodyText>Payment amount</BodyText>
-              <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
+              <BodyText style={{ fontWeight: '700' }}>
+                {props.costPerVote}SD
+              </BodyText>
             </Flex>
             <Flex
               justify={'space-between'}
@@ -106,6 +109,10 @@ const Proposal: NextPage<
             <Checkbox
               color="violet"
               radius={'xl'}
+              checked={termsConfirmed}
+              onChange={(event) =>
+                setTermsConfirmed(event.currentTarget.checked)
+              }
               label={
                 <>
                   By clicking “Vote now”, you confirm that you have read,
@@ -124,7 +131,16 @@ const Proposal: NextPage<
             />
           </Stack>
 
-          <Button style={{ width: '90%', margin: '1rem' }}>
+          <Button
+            style={{ width: '90%', margin: '1rem' }}
+            disabled={!termsConfirmed}
+            onClick={() => {
+              api.proposal.post('/vote', {
+                username: props.username,
+                typeId: props._id,
+              });
+              setModalOpened(false);
+            }}>
             <TbHandStop />
             Vote Now
           </Button>
