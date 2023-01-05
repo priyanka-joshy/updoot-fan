@@ -6,14 +6,6 @@ import {
 } from 'next';
 import { useRouter } from 'next/router';
 import { TbChevronRight } from 'react-icons/tb';
-import { BsStars } from 'react-icons/bs';
-
-import {
-  TokCtrtWithoutSplit,
-  Chain,
-  ChainID,
-  NodeAPI,
-} from '@virtualeconomy/js-vsys';
 
 import styles from 'styles/user/profile.module.scss';
 import {
@@ -21,15 +13,15 @@ import {
   Heading1,
   Heading4,
   Subheading1,
-  Subheading3,
 } from '@components/typography';
 import PCCard from '@components/PCCard';
 import VoteRow from '@components/voteRow';
 import Button from '@components/button';
 import api from 'src/utils/api';
-import { Bookmark, Campaign, Comment, Proposal, User } from 'src/utils/types';
+import { Campaign, Comment, Proposal, User } from 'src/utils/types';
 import { withSSRContext } from 'aws-amplify';
-import { STARDUST_CTRT_ID, TEST_NET } from 'src/utils/constants';
+import { getProfilePicture } from 'src/utils/storage';
+import getWalletBalance from 'src/utils/getWalletBalance';
 
 const Profile: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -39,24 +31,17 @@ const Profile: NextPage<
     (proposal) => proposal.status === 'Draft'
   );
 
-  const bookmarkedProposals: Proposal[] = [];
-
   return (
-    <div>
-      <Flex justify="space-between" wrap="wrap">
-        <div>
-          <Heading1>Profile</Heading1>
-          <Subheading1 color="#A1A1A1">
-            Manage your assets and activity
-          </Subheading1>
-        </div>
-        <Flex align="center" gap="md">
-          <Stack align="end" spacing={0}>
-            <Heading4>{props.user.username}</Heading4>
-            <Subheading1 color="#A1A1A1">
-              Joined: {new Date(props.user.createdAt).toLocaleDateString()}
-            </Subheading1>
-          </Stack>
+    <div style={{ height: '100vh' }}>
+      <div>
+        <Heading1>Profile</Heading1>
+        <Subheading1>Manage your assets and activity</Subheading1>
+      </div>
+      <Flex
+        align="center"
+        gap="md"
+        style={{ height: '20%', marginBlock: '2rem' }}>
+        <Flex align="center" gap="md" className={styles.card}>
           <img
             className={styles.image}
             src={
@@ -65,21 +50,34 @@ const Profile: NextPage<
               'cartoon-illustration_56104-471.jpg?w=2000'
             }
           />
+          <Stack spacing={0}>
+            <Heading4>{props.user.username}</Heading4>
+            <Subheading1>
+              Joined{' '}
+              {new Date(props.user.createdAt).toLocaleString('default', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </Subheading1>
+          </Stack>
         </Flex>
+        <UnstyledButton
+          className={styles.card}
+          onClick={() => router.push('wallet')}>
+          <Stack pr="3rem" spacing={10}>
+            <Heading4>Stardust Wallet</Heading4>
+            <Subheading1>
+              Wallet ID:{' '}
+              {props.user.walletAddress.slice(0, 8) +
+                '...' +
+                props.user.walletAddress.slice(-8)}
+            </Subheading1>
+            <Subheading1 color="#6200FF">Balance: {props.balance}</Subheading1>
+          </Stack>
+          <TbChevronRight size={30} />
+        </UnstyledButton>
       </Flex>
-      <UnstyledButton
-        className={styles.wallet}
-        onClick={() => router.push('wallet')}>
-        <Stack pr="3rem">
-          <BodyText>Stardust Wallet</BodyText>
-          <Subheading3 color="#6200FF">
-            Wallet ID: {props.user.walletAddress}
-          </Subheading3>
-        </Stack>
-        <BsStars size={30} color="#6200FF" />
-        <Heading1>{props.balance}</Heading1>
-        <TbChevronRight size={30} />
-      </UnstyledButton>
       <Tabs defaultValue="proposals" color="gray">
         <Tabs.List grow pr="20%" my="xl">
           <Tabs.Tab value="proposals">
@@ -141,7 +139,11 @@ const Profile: NextPage<
         </Tabs.Panel>
         <Tabs.Panel value="comments" pt="xs">
           {props.comments.length > 0 ? (
-            <></>
+            <>
+              {props.comments.map((a) => (
+                <Heading1>{a.content}</Heading1>
+              ))}
+            </>
           ) : (
             <Flex justify="center">
               <EmptyState
@@ -227,11 +229,7 @@ export const getServerSideProps: GetServerSideProps<{
   const { email, name } = (await SSR.Auth.currentAuthenticatedUser())
     .attributes;
   const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
-  const nodeApi = NodeAPI.new(TEST_NET);
-  const chainId = new ChainID('TEST_NET', ChainID.elems.TEST_NET);
-  const chain = new Chain(nodeApi, chainId);
-  const stardustContract = new TokCtrtWithoutSplit(STARDUST_CTRT_ID, chain);
-  const balance = await stardustContract.getTokBal(user.walletAddress);
+  const balance = await getWalletBalance(user.walletAddress);
   const bookmarkRes = await api.user.get(`/bookmark/${email}`);
   const commentRes = await api.comment.get(`/get-by-username/${name}`);
   const proposalRes = await api.proposal.get(`/user/${email}`);
@@ -249,11 +247,12 @@ export const getServerSideProps: GetServerSideProps<{
   }
   return {
     props: {
-      balance: +balance.data,
+      balance,
       bookmarks: { proposalBookmarks, campaignBookmarks },
       comments: commentRes.message.comment,
       likes: [],
-      proposals: proposalRes.message.proposalList,
+      profilePicture: currentProfilePhoto,
+      proposals: proposalRes.message?.proposalList ?? [],
       user,
       votes: new Array(0).fill({}).map(() => ({
         title:

@@ -46,6 +46,7 @@ export interface Comment {
   isReported: boolean;
   parentCommentId?: string;
   rewardId?: string;
+  timestamp: number;
   type: 'Campaign' | 'Proposal';
   typeId: string;
   username: string;

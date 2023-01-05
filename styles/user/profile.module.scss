@@ -1,13 +1,12 @@
 @use 'styles/colors';
 
-.wallet {
+.card {
   display: flex;
   align-items: center;
-  height: fit-content;
-  margin-block: 2rem;
-  padding: 1rem;
-  border: 1px solid colors.$light-gray;
-  border-radius: 1rem;
+  background-color: colors.$bg-gray;
+  border-radius: 1.25rem;
+  padding: 2.25rem;
+  height: 100%;
 }
 
 .image {

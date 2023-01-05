@@ -17,10 +17,14 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { DatePicker } from '@mantine/dates';
-import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from 'next';
 import { useRouter } from 'next/router';
 
-import { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import api from 'src/utils/api';
 import styles from 'styles/user/proposals/create.module.scss';
 
@@ -29,7 +33,6 @@ import {
   TbChevronLeft,
   TbChevronUp,
   TbEdit,
-  TbHandStop,
   TbUpload,
 } from 'react-icons/tb';
 import {
@@ -42,28 +45,43 @@ import Button from '@components/button';
 import StatCard from '@components/statCard';
 import { useAuth } from 'src/utils/auth/authContext';
 import Dropzone from '@components/dropzone';
-import { Artist, Proposal } from 'src/utils/types';
+import { Artist, Proposal, ProposalSponsor } from 'src/utils/types';
+import { withSSRContext } from 'aws-amplify';
+import getWalletBalance from 'src/utils/getWalletBalance';
 
-const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
-  props
-) => {
+const Create: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = (props) => {
   const { user: author } = useAuth();
   const [artist, setArtist] = useState<Artist[]>([]);
-  const [sponsors, setSponsors] = useState<Artist[]>([]);
-  const [availableSponsors, setAvailableSponsors] = useState<Artist[]>([]);
+  const [sponsors, setSponsors] = useState<ProposalSponsor[]>([]);
+  const [availableSponsors, setAvailableSponsors] = useState<ProposalSponsor[]>(
+    []
+  );
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [titleImage, setTitleImage] = useState<File | null>();
   // titleImage => uploaded on aws bucket, link sent to heroku db
-  const [SupportingFiles, setSupportingFiles] = useState<File[]>([]);
+  const [supportingFiles, setSupportingFiles] = useState<File[]>([]);
   // SupportFiles => uploaded on aws bucket, link sent to heroku db
   const [proposalId, setProposalId] = useState<string>('0');
   const [modalOpened, setModalOpened] = useState(false);
   const [publishCompleteModal, setPublishCompleteModal] = useState(false);
   const router = useRouter();
-  const openRef = useRef<() => void>();
+
+  useEffect(
+    () =>
+      setAvailableSponsors(
+        props.sponsors.filter((sponsor) =>
+          artist
+            .map((artist) => artist.companyId)
+            .includes(sponsor.companyId ?? '')
+        )
+      ),
+    [artist]
+  );
 
   interface ItemProps extends React.ComponentPropsWithoutRef<'div'> {
     image: string;
@@ -71,7 +89,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
     value: string;
   }
 
-  const createProposal = (status: 'Pending' | 'Draft') => {
+  const createProposal = () => {
     const body: Partial<Proposal> = {
       title: title,
       details: description,
@@ -82,7 +100,6 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
       sponsors: sponsors.map((a) => a._id),
       author: author?.attributes.email,
       titleImage: 'test',
-      status: status,
       // startTime, endTime
     };
     console.log(body);
@@ -168,7 +185,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
             }}>
             <Flex justify={'space-between'}>
               <BodyText>Stardust Balance</BodyText>
-              <BodyText>{props.stardust}SD</BodyText>
+              <BodyText>{props.balance}SD</BodyText>
             </Flex>
             <Flex justify={'space-between'}>
               <BodyText>Payment amount</BodyText>
@@ -181,7 +198,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                 paddingTop: '1rem',
               }}>
               <BodyText>Balance after payment</BodyText>
-              <BodyText>{props.stardust - 1000}SD</BodyText>
+              <BodyText>{props.balance - 1000}SD</BodyText>
             </Flex>
           </Stack>
           <Stack style={{ width: '80%', padding: '1rem 0' }}>
@@ -210,9 +227,9 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           <Button
             style={{ width: '90%', margin: '1rem' }}
             onClick={async () => {
-              const body = createProposal('Pending');
+              const body = createProposal();
               const res = await api.proposal.post('/create', body);
-              setProposalId(res.message.proposalId);
+              setProposalId(res.message._id);
               setModalOpened(false);
               setPublishCompleteModal(true);
             }}>
@@ -297,17 +314,17 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               placeholder="Type the artist name to find a related sponsor"
               itemComponent={SelectItem}
               valueComponent={ValueItem}
-              data={props.sponsors.map((sponsor: Artist, key) => ({
-                value: sponsor.name,
+              data={availableSponsors.map((sponsor, key) => ({
+                value: sponsor.username,
                 label: sponsor.companyId,
-                image: sponsor.image,
+                image: sponsor.profilePicture,
                 id: key,
               }))}
               onChange={(selectedItems) => {
-                const sponsorlist: Artist[] = [];
+                const sponsorlist: ProposalSponsor[] = [];
                 selectedItems.forEach((item) => {
-                  let temp = props.sponsors.find(
-                    (sponsor) => sponsor.name === item
+                  let temp = availableSponsors.find(
+                    (sponsor) => sponsor.username === item
                   )!;
                   sponsorlist.push(temp);
                 });
@@ -368,12 +385,12 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
           </Stack>
           <Stack className={styles.inputContainer}>
             <Heading3>Supporting Files</Heading3>
-            {SupportingFiles.length === 0 ? (
+            {supportingFiles.length === 0 ? (
               <>
                 <Dropzone
                   multiple
                   maxFiles={5}
-                  value={SupportingFiles && SupportingFiles[0]}
+                  value={supportingFiles && supportingFiles[0]}
                   type={'file'}
                   onDropAny={(files) => {
                     setSupportingFiles([...files]);
@@ -384,7 +401,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               </>
             ) : (
               <>
-                {SupportingFiles.map((file, i) => (
+                {supportingFiles.map((file, i) => (
                   <Box
                     key={i}
                     sx={{ border: '1px solid #A1A1A1' }}
@@ -435,7 +452,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               size="md"
               color="black"
               onClick={async () => {
-                const body = createProposal('Draft');
+                const body = createProposal();
                 await api.proposal.post('/create', body);
               }}
               style={{
@@ -451,8 +468,8 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               size="md"
               color="purple"
               onClick={async () => {
-                const body = createProposal('Pending');
-                await api.proposal.post('/create', body);
+                const body = createProposal();
+                await api.proposal.post('/submit', body);
                 setModalOpened(true);
               }}
               style={{
@@ -483,61 +500,27 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   );
 };
 
-export const getStaticProps: GetStaticProps<{
-  sponsors: Artist[];
+export const getServerSideProps: GetServerSideProps<{
   artists: Artist[];
-  stardust: number;
-}> = async () => ({
-  props: {
-    // get sponsors and artists list
-    sponsors: [
-      {
-        _id: '1',
-        brand: "Spinnin' Asia",
-        companyId: "Spinnin' Asia",
-        name: 'Emma Smith',
-        image: '/Comment-avatar-1.png',
-      },
-      {
-        _id: '2',
-        brand: 'warner Music',
-        companyId: 'Warner Bros Music',
-        name: 'Satish Patel',
-        image: '/Comment-avatar-1.png',
-      },
-      {
-        _id: '3',
-        brand: 'Starship Entertainment',
-        companyId: 'Starship Entertainment',
-        name: 'Hannah Lane',
-        image: '/Comment-avatar-1.png',
-      },
-    ],
-    artists: [
-      {
-        _id: '1',
-        brand: 'warner Music',
-        companyId: 'Warner Bros Music',
-        name: 'DJ Soda',
-        image: '/Comment-avatar-1.png',
-      },
-      {
-        _id: '2',
-        brand: 'warner Music',
-        companyId: 'Warner Bros Music',
-        name: 'Empira',
-        image: '/Comment-avatar-1.png',
-      },
-      {
-        _id: '3',
-        brand: 'warner Music',
-        companyId: 'Warner Bros Music',
-        name: 'Gotez',
-        image: '/Comment-avatar-1.png',
-      },
-    ],
-    stardust: 300,
-  },
-});
+  balance: number;
+  sponsors: ProposalSponsor[];
+}> = async (context) => {
+  const SSR = withSSRContext(context);
+  const { name } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
+  const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
+  const balance = await getWalletBalance(user.walletAddress);
+  const { message: artists } = await api.artist.get('/all');
+  const sponsorRes = await api.proposal.post('/sponsors', {
+    companiesId: artists.map((artist: Artist) => artist.companyId) as string[],
+  });
+  return {
+    props: {
+      // get sponsors and artists list
+      artists,
+      balance,
+      sponsors: sponsorRes.message.sponsors,
+    },
+  };
+};
 
 export default Create;

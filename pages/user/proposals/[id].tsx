@@ -30,13 +30,6 @@ import {
 import { WiStars } from 'react-icons/wi';
 import { withSSRContext } from 'aws-amplify';
 
-import {
-  TokCtrtWithoutSplit,
-  Chain,
-  ChainID,
-  NodeAPI,
-} from '@virtualeconomy/js-vsys';
-
 import StatCard from '@components/statCard';
 import {
   BodyText,
@@ -45,9 +38,10 @@ import {
   Subheading2,
 } from '@components/typography';
 import Button from '@components/button';
-import { Proposal } from 'src/utils/types';
+import { Proposal, Comment } from 'src/utils/types';
 import api from 'src/utils/api';
-import { TEST_NET, STARDUST_CTRT_ID } from 'src/utils/constants';
+import { getProfilePicture } from 'src/utils/storage';
+import getWalletBalance from 'src/utils/getWalletBalance';
 
 interface Params extends ParsedUrlQuery {
   id: string;
@@ -228,7 +222,7 @@ const Proposal: NextPage<
                 Comment
               </Button>
 
-              {props.comments.map((item) => (
+              {props.comments.map((comment) => (
                 <Stack spacing={'sm'} style={{ marginBottom: '1rem' }}>
                   <Flex align={'center'} gap="sm">
                     <img
@@ -237,12 +231,12 @@ const Proposal: NextPage<
                         height: '40px',
                         borderRadius: '50%',
                       }}
-                      src={item.image}
+                      src={''}
                     />
-                    <Subheading2>{item.name}</Subheading2>
-                    <BodyText color="#CCCCCC">{item.timestamp}</BodyText>
+                    <Subheading2>{comment.username}</Subheading2>
+                    <BodyText color="#CCCCCC">{comment.timestamp}</BodyText>
                   </Flex>
-                  <BodyText>{item.comment}</BodyText>
+                  <BodyText>{comment.content}</BodyText>
                 </Stack>
               ))}
             </Stack>
@@ -355,64 +349,30 @@ const Proposal: NextPage<
 };
 
 export const getServerSideProps: GetServerSideProps<
-  Proposal & { comments: any[]; balance: number },
+  Proposal & {
+    comments: Comment[];
+    balance: number;
+    username: string;
+    profilePicture: string;
+  },
   Params
 > = async (context) => {
   const { id } = context.params!;
   const proposal = await api.proposal.get(`/${id}`);
-  console.log(proposal);
   const SSR = withSSRContext(context);
   const { name } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
   const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
-  const nodeApi = NodeAPI.new(TEST_NET);
-  const chainId = new ChainID('TEST_NET', ChainID.elems.TEST_NET);
-  const chain = new Chain(nodeApi, chainId);
-  const stardustContract = new TokCtrtWithoutSplit(STARDUST_CTRT_ID, chain);
-  const balance = await stardustContract.getTokBal(user.walletAddress);
+  const balance = await getWalletBalance(user.walletAddress);
+  const commentsRes = await api.proposal.get(`/comments/${id}`);
+  // get profile picture from s3 bucket
+  const currentProfilePhoto = await getProfilePicture(user.profilePicture);
   return {
     props: {
       ...proposal.message,
-      balance: +balance.data,
-      comments: [
-        {
-          image: '/temp1.png',
-          name: 'JaneSmith',
-          timestamp: 1671157970,
-          comment:
-            'Overall it looks incredible. You’ve nailed the design!! I think it fits perfectly with RAMENGVRL’s image 🔥 Let’s make it real folks!',
-        },
-        {
-          image: '/temp2.png',
-          name: 'Paul Leto',
-          timestamp: 1671157970,
-          comment: 'Nice design - would love to see it come to life 😎',
-        },
-        {
-          image: '/temp3.png',
-          name: 'ann_lee',
-          timestamp: 1671157970,
-          comment: 'Love the colors and the font!! Well done 👍',
-        },
-        {
-          image: '/temp1.png',
-          name: 'JaneSmith',
-          timestamp: 1671157970,
-          comment:
-            'Overall it looks incredible. You’ve nailed the design!! I think it fits perfectly with RAMENGVRL’s image 🔥 Let’s make it real folks!',
-        },
-        {
-          image: '/temp2.png',
-          name: 'Paul Leto',
-          timestamp: 1671157970,
-          comment: 'Nice design - would love to see it come to life 😎',
-        },
-        {
-          image: '/temp3.png',
-          name: 'ann_lee',
-          timestamp: 1671157970,
-          comment: 'Love the colors and the font!! Well done 👍',
-        },
-      ],
+      balance,
+      username: name,
+      profilePicture: currentProfilePhoto,
+      comments: commentsRes.message.comments,
     },
   };
 };
