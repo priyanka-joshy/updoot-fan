@@ -22,12 +22,16 @@ import { ParsedUrlQuery } from 'querystring';
 import { FiCheckCircle, FiHeart, FiUserCheck } from 'react-icons/fi';
 import { BiLike, BiTimeFive } from 'react-icons/bi';
 import {
+  TbBookmark,
+  TbCheck,
   TbChevronLeft,
+  TbChevronRight,
   TbChevronUp,
   TbHandStop,
   TbShare,
 } from 'react-icons/tb';
 import { WiStars } from 'react-icons/wi';
+import styles from 'styles/user/proposals/index.module.scss';
 import { withSSRContext } from 'aws-amplify';
 
 import StatCard from '@components/statCard';
@@ -57,10 +61,82 @@ const Proposal: NextPage<
 > = (props) => {
   const [balance, setBalance] = useState(props.balance);
   const [modalOpened, setModalOpened] = useState(false);
+  const [successModalOpened, setSuccessModalOpened] = useState(false);
+  const [imageModalOpened, setImageModalOpened] = useState(false);
+  const [successCommentModal, setSuccessCommentModal] = useState(false);
+  const [commentContent, setCommentContent] = useState('');
+
   const router = useRouter();
 
+  const sortedComments = props.comments.sort(
+    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+  );
+
+  const getDateDifferenceHours = (date: string) => {
+    let diffTime = Math.abs(new Date().valueOf() - new Date(date).valueOf());
+    let days = diffTime / (24 * 60 * 60 * 1000);
+    let hours = (days % 1) * 24;
+    let minutes = (hours % 1) * 60;
+    let secs = (minutes % 1) * 60;
+    [days, hours, minutes, secs] = [
+      Math.floor(days),
+      Math.floor(hours),
+      Math.floor(minutes),
+      Math.floor(secs),
+    ];
+    //format datestring per specs
+    let dateString = '';
+    if (days > 0) {
+      dateString = `${days ? `${days}days` : ''} ago`;
+    } else if (hours > 0) {
+      dateString = `${hours ? `${hours}hours` : ''} ago`;
+    } else {
+      dateString = `${minutes ? `${minutes}minutes` : ''} ago`;
+    }
+
+    return dateString;
+  };
   return (
     <div>
+      <Modal
+        opened={imageModalOpened}
+        size="50vh"
+        padding={0}
+        onClose={() => setImageModalOpened(false)}>
+        <Carousel>
+          <Carousel
+            mt="lg"
+            style={{ padding: '0 rem' }}
+            height="15vh"
+            align="start"
+            slideSize="25%"
+            controlsOffset={'xs'}
+            slideGap={1}
+            previousControlIcon={<TbChevronLeft size={16} />}
+            loop={true}>
+            <Carousel.Slide size="50%">
+              <img
+                height="100%"
+                src={'/temp5.png'}
+                style={{ width: '100%', borderRadius: '10px' }}
+              />
+            </Carousel.Slide>
+            {['/temp1.png', '/temp2.png', '/temp3.png'].map((src) => (
+              <Carousel.Slide
+                style={{ justifyContent: 'center', display: 'flex' }}>
+                <img
+                  height="100%"
+                  style={{
+                    border: '1px solid #CCCCCC',
+                    borderRadius: '10px',
+                  }}
+                  src={src}
+                />
+              </Carousel.Slide>
+            ))}
+          </Carousel>
+        </Carousel>
+      </Modal>
       <Modal
         centered={true}
         radius={'xl'}
@@ -97,6 +173,7 @@ const Proposal: NextPage<
           <Stack style={{ width: '80%', padding: '1rem 0' }}>
             <Subheading1>Confirm Payment</Subheading1>
             <Checkbox
+              required
               color="violet"
               radius={'xl'}
               label={
@@ -117,9 +194,52 @@ const Proposal: NextPage<
             />
           </Stack>
 
-          <Button style={{ width: '90%', margin: '1rem' }}>
+          <Button
+            style={{ width: '90%', margin: '1rem' }}
+            onClick={() => {
+              setModalOpened(false);
+              setSuccessModalOpened(true);
+            }}>
             <TbHandStop />
             Vote Now
+          </Button>
+        </Stack>
+      </Modal>
+
+      <Modal
+        centered={true}
+        radius={'xl'}
+        opened={successModalOpened}
+        onClose={() => setModalOpened(false)}>
+        <Stack align={'center'}>
+          <TbCheck color="#6200FF" size={36} />
+          <Heading3 style={{ fontWeight: '600' }}>
+            Thank You For Voting!
+          </Heading3>
+          <Button
+            style={{ width: '90%', margin: '1rem' }}
+            onClick={() => router.back()}>
+            <TbHandStop />
+            Back to Discover
+          </Button>
+        </Stack>
+      </Modal>
+
+      <Modal
+        centered={true}
+        radius={'xl'}
+        opened={successCommentModal}
+        onClose={() => setSuccessCommentModal(false)}>
+        <Stack align={'center'} justify={'center'}>
+          <TbCheck color="#6200FF" size={50} />
+          <Heading3 style={{ fontWeight: '600', textAlign: 'center' }}>
+            Your Comment Has Been Submitted. Please wait for approval.
+          </Heading3>
+          <Button
+            style={{ width: '90%', margin: '1rem' }}
+            onClick={() => setSuccessCommentModal(false)}>
+            <TbHandStop />
+            Back
           </Button>
         </Stack>
       </Modal>
@@ -198,19 +318,24 @@ const Proposal: NextPage<
             <Stack spacing={'lg'} style={{ padding: '0 2rem' }}>
               <Flex justify={'space-between'}>
                 <Subheading1>Join the Conversation!</Subheading1>
-                <Subheading1 color="#A1A1A1">60 Comments</Subheading1>
+                <Subheading1 color="#A1A1A1">
+                  {props.comments.length} comments
+                </Subheading1>
               </Flex>
               <Flex align={'center'} gap="sm">
                 <img
                   style={{ width: '40px', height: '40px', borderRadius: '50%' }}
                   src="/temp2.png"
                 />
-                <Subheading2>Johndoe1234</Subheading2>
+                <Subheading2>{props.username}</Subheading2>
               </Flex>
               <Textarea
                 radius="md"
                 placeholder="What do you think?"
                 size="xl"
+                onChange={(e) => {
+                  setCommentContent(e.target.value);
+                }}
               />
               <Button
                 type="secondary"
@@ -218,23 +343,30 @@ const Proposal: NextPage<
                 style={{
                   marginLeft: 'auto',
                   marginRight: '0',
+                }}
+                onClick={async () => {
+                  const body: Partial<Comment> = {
+                    content: commentContent,
+                    type: 'Proposal',
+                    typeId: props._id,
+                    username: props.username,
+                  };
+                  const res = await api.comment.post('/create', body);
+                  setSuccessCommentModal(true);
                 }}>
                 Comment
               </Button>
-
-              {props.comments.map((comment) => (
+              {sortedComments.map((comment) => (
                 <Stack spacing={'sm'} style={{ marginBottom: '1rem' }}>
                   <Flex align={'center'} gap="sm">
                     <img
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                      }}
-                      src={''}
+                      className={styles.avatarImage}
+                      src={'/authPageLogo.svg'}
                     />
                     <Subheading2>{comment.username}</Subheading2>
-                    <BodyText color="#CCCCCC">{comment.timestamp}</BodyText>
+                    <BodyText color="#CCCCCC">
+                      {getDateDifferenceHours(comment.createdAt)}
+                    </BodyText>
                   </Flex>
                   <BodyText>{comment.content}</BodyText>
                 </Stack>
@@ -244,7 +376,7 @@ const Proposal: NextPage<
         </Grid.Col>
         <Grid.Col
           md={4}
-          style={{ position: 'fixed', right: '2rem', top: '7.5rem' }}>
+          style={{ position: 'fixed', right: '2rem', top: '4rem' }}>
           <Stack h="100%" spacing={0}>
             <Stack spacing="lg" mt="lg" style={{ flex: 1 }}>
               <Grid grow gutter="sm">
@@ -265,9 +397,9 @@ const Proposal: NextPage<
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <StatCard
-                    data={props.sponsors.length}
-                    description="Proposal Sponsors"
-                    icon={<FiUserCheck size={36} color="#6200FF" />}
+                    data={`${props.votes} users`}
+                    description="Users have voted"
+                    icon={<FiCheckCircle size={30} color="#6200FF" />}
                   />
                 </Grid.Col>
                 <Grid.Col span={6}>
@@ -280,11 +412,34 @@ const Proposal: NextPage<
                   />
                 </Grid.Col>
                 <Grid.Col span={12}>
-                  <StatCard
-                    data={`${props.votes} users`}
-                    description="Users have voted"
-                    icon={<FiCheckCircle size={30} color="#6200FF" />}
-                  />
+                  <Stack>
+                    <StatCard
+                      data={props.sponsors.length}
+                      description="Proposal Sponsors"
+                      icon={<FiUserCheck size={36} color="#6200FF" />}
+                    />
+                    <Flex align={'center'} gap="md">
+                      {props.sponsors.map((sponsor, index) => (
+                        <img
+                          className={styles.avatarImage}
+                          src={'/Comment-avatar-1.png'}
+                        />
+                      ))}
+                      <UnstyledButton
+                        style={{
+                          marginRight: 'auto',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                        onClick={() => router.replace('/user/proposals')}>
+                        See More
+                        <TbChevronRight size={20} />
+                      </UnstyledButton>
+                    </Flex>
+                  </Stack>
                 </Grid.Col>
               </Grid>
 
@@ -292,7 +447,7 @@ const Proposal: NextPage<
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
                     width: '100%',
                     gap: '1rem',
                   }}>
@@ -304,6 +459,15 @@ const Proposal: NextPage<
                     }}>
                     <FiHeart />
                     Like
+                  </Button>
+                  <Button
+                    color="black"
+                    type="secondary"
+                    style={{
+                      width: '100%',
+                    }}>
+                    <TbBookmark />
+                    Bookmark
                   </Button>
                   <Button
                     color="black"
