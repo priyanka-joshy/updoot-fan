@@ -47,6 +47,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   const [proposalId, setProposalId] = useState('');
   const [modalOpened, setModalOpened] = useState(false);
   const [publishCompleteModal, setPublishCompleteModal] = useState(false);
+  const [proposalData, setProposalData] = useState<CreateProposalFormData>();
   const router = useRouter();
 
   interface ItemProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -115,12 +116,54 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
     );
   }
 
+  const submitProposal = async () => {
+    if (!proposalData) {
+      return;
+    }
+    const titleImageUpload = await uploadFile(
+      author!.attributes.email,
+      `proposals/${new Date().toISOString()}--${proposalData.title}`,
+      proposalData.titleImage!
+    );
+    if (titleImageUpload instanceof Error) {
+      throw new Error('upload failed title image');
+    }
+
+    // const supportMaterialUpload: string[] = [];
+    const supportMaterialUpload = await Promise.all(
+      proposalData.supportingMaterials!.map(async (material) => {
+        const uploadres = await uploadFile(
+          author!.attributes.email,
+          `proposals/${new Date().toISOString()}--${proposalData.title}`,
+          material
+        );
+        console.log(uploadres);
+        if (uploadres instanceof Error) {
+          throw new Error('upload failed title image');
+        }
+        return uploadres.key;
+      })
+    );
+    console.log(supportMaterialUpload);
+
+    const body = {
+      ...proposalData,
+      supportingMaterials: supportMaterialUpload,
+      companyId: '',
+      brand: '',
+      type: 'proposal',
+      titleImage: titleImageUpload.key,
+    };
+    const res = await api.proposal.post('/submit', body);
+    setProposalId(res);
+    setPublishCompleteModal(true);
+  };
   interface CreateProposalFormData {
     title: string;
     details: string;
     companyId: string;
     artistId: Artist[];
-    supportingMaterial: File[] | null;
+    supportingMaterials: File[] | null;
     brand: string;
     sponsors: Artist[];
     author: string;
@@ -135,11 +178,11 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
       details: '',
       companyId: '',
       artistId: [],
-      supportingMaterial: null,
+      supportingMaterials: null,
       brand: '',
       sponsors: [],
       author: author!.attributes.email,
-      titleImage: new File([''], 'filename'),
+      titleImage: null,
       proposalType: '',
     },
 
@@ -150,7 +193,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
         value.length > 0 ? null : 'please select at least one artist',
       sponsors: (value) =>
         value.length > 0 ? null : 'please select at least one sponsor',
-      titleImage: (value) => (value ? 'please upload a title image' : null),
+      titleImage: (value) => (value ? null : 'please upload a title image'),
     },
   });
 
@@ -161,41 +204,46 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
         radius={'xl'}
         opened={modalOpened}
         onClose={() => setModalOpened(false)}>
-        <Stack align={'center'}>
-          <TbUpload color="#6200FF" size={36} />
-          <Heading3 style={{ fontWeight: '600' }}>
-            Publish Your Proposal
-          </Heading3>
-          <Subheading1>Publishing requires StarDust to be valid</Subheading1>
-          <Stack
-            spacing={'sm'}
-            style={{
-              borderRadius: '1rem',
-              border: '1px solid #DFE0EB',
-              padding: '1rem',
-              marginTop: '2.5rem',
-              width: '90%',
-            }}>
-            <Flex justify={'space-between'}>
-              <BodyText>Stardust Balance</BodyText>
-              <BodyText>{props.stardust}SD</BodyText>
-            </Flex>
-            <Flex justify={'space-between'}>
-              <BodyText>Payment amount</BodyText>
-              <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
-            </Flex>
-            <Flex
-              justify={'space-between'}
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await submitProposal();
+            setModalOpened(false);
+          }}>
+          <Stack align={'center'}>
+            <TbUpload color="#6200FF" size={36} />
+            <Heading3 style={{ fontWeight: '600' }}>
+              Publish Your Proposal
+            </Heading3>
+            <Subheading1>Publishing requires StarDust to be valid</Subheading1>
+            <Stack
+              spacing={'sm'}
               style={{
-                borderTop: '1px solid #DFE0EB',
-                paddingTop: '1rem',
+                borderRadius: '1rem',
+                border: '1px solid #DFE0EB',
+                padding: '1rem',
+                marginTop: '2.5rem',
+                width: '90%',
               }}>
-              <BodyText>Balance after payment</BodyText>
-              <BodyText>{props.stardust - 1000}SD</BodyText>
-            </Flex>
-          </Stack>
-          <Stack style={{ width: '80%', padding: '1rem 0' }}>
-            <form>
+              <Flex justify={'space-between'}>
+                <BodyText>Stardust Balance</BodyText>
+                <BodyText>{props.stardust}SD</BodyText>
+              </Flex>
+              <Flex justify={'space-between'}>
+                <BodyText>Payment amount</BodyText>
+                <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
+              </Flex>
+              <Flex
+                justify={'space-between'}
+                style={{
+                  borderTop: '1px solid #DFE0EB',
+                  paddingTop: '1rem',
+                }}>
+                <BodyText>Balance after payment</BodyText>
+                <BodyText>{props.stardust - 1000}SD</BodyText>
+              </Flex>
+            </Stack>
+            <Stack style={{ width: '80%', padding: '1rem 0' }}>
               <Subheading1>Confirm Payment</Subheading1>
               <Checkbox
                 required
@@ -217,17 +265,13 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                   </>
                 }
               />
-            </form>
+            </Stack>
+            <Button style={{ width: '90%', margin: '1rem' }}>
+              <TbUpload />
+              Publish
+            </Button>
           </Stack>
-          <Button
-            style={{ width: '90%', margin: '1rem' }}
-            onClick={async () => {
-              form.setFieldValue('proposalType', 'publish');
-            }}>
-            <TbUpload />
-            Publish
-          </Button>
-        </Stack>
+        </form>
       </Modal>
       <Modal
         centered={true}
@@ -265,48 +309,15 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
       </UnstyledButton>
       <form
         onSubmit={form.onSubmit(async (values) => {
-          const titleImageUpload = null;
-          if (!values.titleImage) {
-            const titleImageUpload = await uploadFile(
-              author!.attributes.email,
-              `proposals/${new Date().toISOString()}--${values.title}`,
-              values.titleImage!
-            );
-            if (titleImageUpload instanceof Error) {
-              throw new Error('upload failed title image');
-            }
-          }
-
-          const supportMaterialUpload: string[] = [];
-          values.supportingMaterial!.forEach(async (material) => {
-            const uploadres = await uploadFile(
-              author!.attributes.email,
-              `proposals/${new Date().toISOString()}--${values.title}`,
-              material
-            );
-            if (uploadres instanceof Error) {
-              throw new Error('upload failed title image');
-            }
-            supportMaterialUpload.push(uploadres.key);
-          });
-
-          const body = {
-            ...values,
-            supportingMaterials: supportMaterialUpload,
-            companyId: '',
-            brand: '',
-            type: 'proposal',
-            titleImage: titleImageUpload.key,
-          };
-
-          console.log(body);
-          const res = await api.proposal.post('/create', body);
-          setProposalId(res);
+          setProposalData(values);
+          console.log(values);
+          setModalOpened(true);
         })}>
         <Grid gutter={'sm'} style={{ padding: '1rem' }}>
           <Grid.Col md={8} style={{ marginRight: '2rem' }}>
             <Heading1>Create proposal</Heading1>
-            <pre>{JSON.stringify(form.values, null, 2)}</pre>
+            {/* <pre>{JSON.stringify(form.values, null, 2)}</pre>
+            <pre>{JSON.stringify(form.errors, null, 2)}</pre> */}
             <Stack className={styles.inputContainer}>
               <Heading3>Artist</Heading3>
               <MultiSelect
@@ -404,15 +415,16 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
             </Stack>
             <Stack className={styles.inputContainer}>
               <Heading3>Supporting Files</Heading3>
-              {!form.values.supportingMaterial ? (
+              {!form.values.supportingMaterials ||
+              form.values.supportingMaterials.length < 1 ? (
                 <>
-                  <pre>
+                  {/* <pre>
                     {JSON.stringify(
                       { ...form.getInputProps('supportingMaterial') },
                       null,
                       2
                     )}
-                  </pre>
+                  </pre> */}
                   <Dropzone
                     multiple
                     maxFiles={5}
@@ -421,13 +433,13 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                     placeholder="(max. 2160 x 1080)"
                     mt="sm"
                     onDrop={(file) => {
-                      form.setFieldValue('supportingMaterial', file);
+                      form.setFieldValue('supportingMaterials', file);
                     }}
-                    {...form.getInputProps('supportingMaterial')}></Dropzone>
+                    {...form.getInputProps('supportingMaterials')}></Dropzone>
                 </>
               ) : (
                 <>
-                  {form.values.supportingMaterial.map((file, i) => (
+                  {form.values.supportingMaterials.map((file, i) => (
                     <Box
                       key={i}
                       sx={{ border: '1px solid #A1A1A1' }}
@@ -438,7 +450,10 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                         <Text>{file.name}</Text>
                         <CloseButton
                           onMouseDown={() => {
-                            form.removeListItem('supportingMaterial', i);
+                            if (form.values.supportingMaterials!.length === 1) {
+                              form.setFieldValue('supportingMaterials', null);
+                            }
+                            form.removeListItem('supportingMaterials', i);
                           }}
                           variant="transparent"
                           size={22}
@@ -451,7 +466,6 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                 </>
               )}
             </Stack>
-            <Button>Submit</Button>
           </Grid.Col>
           <Grid.Col
             md={3}
@@ -491,9 +505,10 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                 size="md"
                 color="purple"
                 // disabled={form.isValid() ? false : true}
-                onClick={async () => {
-                  setModalOpened(true);
-                }}
+                // onClick={async () => {
+                //   console.log(form.values);
+                //   setModalOpened(true);
+                // }}
                 style={{
                   marginLeft: 'auto',
                   marginRight: '0',
