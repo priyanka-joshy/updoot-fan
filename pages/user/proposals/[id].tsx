@@ -52,6 +52,7 @@ import Button from '@components/button';
 import { Proposal, Comment } from 'src/utils/types';
 import api from 'src/utils/api';
 import { TEST_NET, STARDUST_CTRT_ID } from 'src/utils/constants';
+import { getProfilePicture } from 'src/utils/storage';
 interface Params extends ParsedUrlQuery {
   id: string;
 }
@@ -65,6 +66,7 @@ const Proposal: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = (props) => {
   const [balance, setBalance] = useState(props.balance);
+  const [termsConfirmed, setTermsConfirmed] = useState(false);
   const [modalOpened, setModalOpened] = useState(false);
   const [successModalOpened, setSuccessModalOpened] = useState(false);
   const [imageModalOpened, setImageModalOpened] = useState(false);
@@ -166,7 +168,9 @@ const Proposal: NextPage<
             </Flex>
             <Flex justify={'space-between'}>
               <BodyText>Payment amount</BodyText>
-              <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
+              <BodyText style={{ fontWeight: '700' }}>
+                {props.costPerVote}SD
+              </BodyText>
             </Flex>
             <Flex
               justify={'space-between'}
@@ -181,6 +185,10 @@ const Proposal: NextPage<
               required
               color="violet"
               radius={'xl'}
+              checked={termsConfirmed}
+              onChange={(event) =>
+                setTermsConfirmed(event.currentTarget.checked)
+              }
               label={
                 <>
                   By clicking “Vote now”, you confirm that you have read,
@@ -201,9 +209,13 @@ const Proposal: NextPage<
 
           <Button
             style={{ width: '90%', margin: '1rem' }}
+            disabled={!termsConfirmed}
             onClick={() => {
+              api.proposal.post('/vote', {
+                username: props.username,
+                typeId: props._id,
+              });
               setModalOpened(false);
-              setSuccessModalOpened(true);
             }}>
             <TbHandStop />
             Vote Now
@@ -330,7 +342,8 @@ const Proposal: NextPage<
               <Flex align={'center'} gap="sm">
                 <img
                   style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                  src="/temp2.png"
+                  src={props.profilePicture}
+                  alt="Profile Picture"
                 />
                 <Subheading2>{props.username}</Subheading2>
               </Flex>
@@ -523,7 +536,12 @@ const Proposal: NextPage<
 };
 
 export const getServerSideProps: GetServerSideProps<
-  Proposal & { comments: any[]; balance: number; username: string },
+  Proposal & {
+    comments: any[];
+    balance: number;
+    username: string;
+    profilePicture: string;
+  },
   Params
 > = async (context) => {
   const { id } = context.params!;
@@ -537,8 +555,8 @@ export const getServerSideProps: GetServerSideProps<
   const chain = new Chain(nodeApi, chainId);
   const stardustContract = new TokCtrtWithoutSplit(STARDUST_CTRT_ID, chain);
   const balance = await stardustContract.getTokBal(user.walletAddress);
-  // get sponsor list
-  // do stardust transaction
+  // get profile picture from s3 bucket
+  const currentProfilePhoto = await getProfilePicture(user.profilePicture);
   return {
     props: {
       ...proposal.message,
@@ -546,6 +564,7 @@ export const getServerSideProps: GetServerSideProps<
       username: name,
       id: id,
       comments: comments.message.comments,
+      profilePicture: currentProfilePhoto,
       sponsors: [
         {
           _id: '1',

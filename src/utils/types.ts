@@ -65,12 +65,6 @@ export interface Proposal extends PCBase {
   supportingMaterials?: string[];
 }
 
-export interface ProposalSponsor {
-  proposalId: string;
-  email: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-}
-
 export interface Transaction {
   amount: number;
   receiverAddress: string;
@@ -82,6 +76,7 @@ export interface Transaction {
 }
 
 export interface User {
+  _id: string;
   companyId?: string;
   email: string;
   encryptedSeed: string;
@@ -92,6 +87,10 @@ export interface User {
   walletAddress: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ProposalSponsor extends User {
+  company: string[];
 }
 
 export interface Vote {

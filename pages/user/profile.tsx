@@ -30,6 +30,7 @@ import api from 'src/utils/api';
 import { Bookmark, Campaign, Comment, Proposal, User } from 'src/utils/types';
 import { withSSRContext } from 'aws-amplify';
 import { STARDUST_CTRT_ID, TEST_NET } from 'src/utils/constants';
+import { getProfilePicture } from 'src/utils/storage';
 
 const Profile: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -59,11 +60,8 @@ const Profile: NextPage<
           </Stack>
           <img
             className={styles.image}
-            src={
-              'https://img.freepik.com/free-vector/' +
-              'cute-rabbit-with-duck-working-laptop-' +
-              'cartoon-illustration_56104-471.jpg?w=2000'
-            }
+            src={props.profilePicture}
+            alt="Profile Picture"
           />
         </Flex>
       </Flex>
@@ -221,6 +219,7 @@ export const getServerSideProps: GetServerSideProps<{
   likes: any[];
   proposals: Proposal[];
   user: User;
+  profilePicture: string;
   votes: any[];
 }> = async (context) => {
   const SSR = withSSRContext(context);
@@ -247,14 +246,16 @@ export const getServerSideProps: GetServerSideProps<{
     const { message: campaign } = await api.campaign.get(`/${campaignId}`);
     proposalBookmarks.push(campaign);
   }
+  const currentProfilePhoto = await getProfilePicture(user.profilePicture);
   return {
     props: {
       balance: +balance.data,
       bookmarks: { proposalBookmarks, campaignBookmarks },
       comments: commentRes.message.comment,
       likes: [],
-      proposals: proposalRes.message.proposalList,
+      proposals: proposalRes.message?.proposalList ?? [],
       user,
+      profilePicture: currentProfilePhoto,
       votes: new Array(0).fill({}).map(() => ({
         title:
           "I quoted one of Valtina's lyric to a merch. Should we have this for the event?",

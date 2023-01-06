@@ -11,10 +11,12 @@ import {
   BodyText,
   Subheading3,
 } from '@components/typography';
+import { useAuth } from 'src/utils/auth/authContext';
 
 const Wallet: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   props
 ) => {
+  const { userInfo } = useAuth();
   return (
     <div>
       <Heading1>Wallet</Heading1>
@@ -22,7 +24,9 @@ const Wallet: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
       <div className={styles.wallet} onClick={() => router.push('wallet')}>
         <Stack pr="3rem">
           <BodyText>Stardust Wallet</BodyText>
-          <Subheading3 color="#6200FF">Wallet ID: F-90d62Biuq524</Subheading3>
+          <Subheading3 color="#6200FF">
+            Wallet ID: {userInfo!.walletAddress}
+          </Subheading3>
         </Stack>
         <BsStars size={30} color="#6200FF" />
         <Heading1> 20000</Heading1>
