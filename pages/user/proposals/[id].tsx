@@ -34,13 +34,6 @@ import { WiStars } from 'react-icons/wi';
 import styles from 'styles/user/proposals/index.module.scss';
 import { withSSRContext } from 'aws-amplify';
 
-import {
-  TokCtrtWithoutSplit,
-  Chain,
-  ChainID,
-  NodeAPI,
-} from '@virtualeconomy/js-vsys';
-
 import StatCard from '@components/statCard';
 import {
   BodyText,
@@ -51,8 +44,9 @@ import {
 import Button from '@components/button';
 import { Proposal, Comment } from 'src/utils/types';
 import api from 'src/utils/api';
-import { TEST_NET, STARDUST_CTRT_ID } from 'src/utils/constants';
 import { getProfilePicture } from 'src/utils/storage';
+import getWalletBalance from 'src/utils/getWalletBalance';
+
 interface Params extends ParsedUrlQuery {
   id: string;
 }
@@ -374,24 +368,19 @@ const Proposal: NextPage<
                 }}>
                 Comment
               </Button>
-              {sortedComments.map((item) => (
+              {sortedComments.map((comment) => (
                 <Stack spacing={'sm'} style={{ marginBottom: '1rem' }}>
                   <Flex align={'center'} gap="sm">
-                    {item.image ? (
-                      <img className={styles.avatarImage} src={item.image} />
-                    ) : (
-                      <img
-                        className={styles.avatarImage}
-                        src={'/authPageLogo.svg'}
-                      />
-                    )}
-
-                    <Subheading2>{item.username}</Subheading2>
+                    <img
+                      className={styles.avatarImage}
+                      src={'/authPageLogo.svg'}
+                    />
+                    <Subheading2>{comment.username}</Subheading2>
                     <BodyText color="#CCCCCC">
-                      {getDateDifferenceHours(item.createdAt)}
+                      {getDateDifferenceHours(comment.createdAt)}
                     </BodyText>
                   </Flex>
-                  <BodyText>{item.content}</BodyText>
+                  <BodyText>{comment.content}</BodyText>
                 </Stack>
               ))}
             </Stack>
@@ -537,7 +526,7 @@ const Proposal: NextPage<
 
 export const getServerSideProps: GetServerSideProps<
   Proposal & {
-    comments: any[];
+    comments: Comment[];
     balance: number;
     username: string;
     profilePicture: string;
@@ -546,48 +535,20 @@ export const getServerSideProps: GetServerSideProps<
 > = async (context) => {
   const { id } = context.params!;
   const proposal = await api.proposal.get(`/${id}`);
-  const comments = await api.proposal.get(`/comments/${id}`);
   const SSR = withSSRContext(context);
   const { name } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
   const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
-  const nodeApi = NodeAPI.new(TEST_NET);
-  const chainId = new ChainID('TEST_NET', ChainID.elems.TEST_NET);
-  const chain = new Chain(nodeApi, chainId);
-  const stardustContract = new TokCtrtWithoutSplit(STARDUST_CTRT_ID, chain);
-  const balance = await stardustContract.getTokBal(user.walletAddress);
+  const balance = await getWalletBalance(user.walletAddress);
+  const commentsRes = await api.proposal.get(`/comments/${id}`);
   // get profile picture from s3 bucket
   const currentProfilePhoto = await getProfilePicture(user.profilePicture);
   return {
     props: {
       ...proposal.message,
-      balance: +balance.data,
+      balance,
       username: name,
-      id: id,
-      comments: comments.message.comments,
       profilePicture: currentProfilePhoto,
-      sponsors: [
-        {
-          _id: '1',
-          brand: "Spinnin' Asia",
-          companyId: "Spinnin' Asia",
-          name: 'Emma Smith',
-          image: '/Comment-avatar-1.png',
-        },
-        {
-          _id: '2',
-          brand: 'warner Music',
-          companyId: 'Warner Bros Music',
-          name: 'Satish Patel',
-          image: '/Comment-avatar-1.png',
-        },
-        {
-          _id: '3',
-          brand: 'Starship Entertainment',
-          companyId: 'Starship Entertainment',
-          name: 'Hannah Lane',
-          image: '/Comment-avatar-1.png',
-        },
-      ],
+      comments: commentsRes.message.comments,
     },
   };
 };
