@@ -17,7 +17,7 @@ import {
   TextInput,
   UnstyledButton,
 } from '@mantine/core';
-import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import { GetServerSideProps, GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 import { useRouter } from 'next/router';
 
 import { forwardRef, useEffect, useState } from 'react';
@@ -35,10 +35,11 @@ import Button from '@components/button';
 import StatCard from '@components/statCard';
 import { useAuth } from 'src/utils/auth/authContext';
 import Dropzone from '@components/dropzone';
-import { Artist, Proposal } from 'src/utils/types';
+import { Artist, Proposal, ProposalSponsor } from 'src/utils/types';
 import { useForm } from '@mantine/form';
 import { FileWithPath } from '@mantine/dropzone';
 import { uploadFile } from 'src/utils/storage';
+import { withSSRContext } from 'aws-amplify';
 
 const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   props
@@ -49,6 +50,19 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   const [publishCompleteModal, setPublishCompleteModal] = useState(false);
   const [proposalData, setProposalData] = useState<CreateProposalFormData>();
   const router = useRouter();
+  const [availableSponsors. setAvailableSponsors] = useState<ProposalSponsor>();
+
+  useEffect(
+    () =>
+      setAvailableSponsors(
+        props.sponsors.filter((sponsor) =>
+          artist
+            .map((artist) => artist.companyId)
+            .includes(sponsor.companyId ?? '')
+        )
+      ),
+    [artist]
+  );
 
   interface ItemProps extends React.ComponentPropsWithoutRef<'div'> {
     image: string;
@@ -117,6 +131,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   }
 
   const submitProposal = async () => {
+    // upload title image to S3 Bucket
     if (!proposalData) {
       return;
     }
@@ -128,8 +143,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
     if (titleImageUpload instanceof Error) {
       throw new Error('upload failed title image');
     }
-
-    // const supportMaterialUpload: string[] = [];
+// upload supporting material to S3 bucket
     const supportMaterialUpload = await Promise.all(
       proposalData.supportingMaterials!.map(async (material) => {
         const uploadres = await uploadFile(
@@ -165,7 +179,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
     artistId: Artist[];
     supportingMaterials: File[] | null;
     brand: string;
-    sponsors: Artist[];
+    sponsors: ProposalSponsor[];
     author: string;
     titleImage: FileWithPath | null;
     proposalType: string;
@@ -227,7 +241,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
               }}>
               <Flex justify={'space-between'}>
                 <BodyText>Stardust Balance</BodyText>
-                <BodyText>{props.stardust}SD</BodyText>
+                <BodyText>{props.balance}SD</BodyText>
               </Flex>
               <Flex justify={'space-between'}>
                 <BodyText>Payment amount</BodyText>
@@ -240,7 +254,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                   paddingTop: '1rem',
                 }}>
                 <BodyText>Balance after payment</BodyText>
-                <BodyText>{props.stardust - 1000}SD</BodyText>
+                <BodyText>{props.balance - 1000}SD</BodyText>
               </Flex>
             </Stack>
             <Stack style={{ width: '80%', padding: '1rem 0' }}>
@@ -338,7 +352,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                 }}
                 data={props.artists.map((artist: Artist, key) => ({
                   value: artist._id,
-                  name: artist.name,
+                  // name: artist.name,
                   label: artist.companyId,
                   image: artist.image,
                   id: key,
@@ -359,7 +373,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                 placeholder="Type the artist name to find a related sponsor"
                 itemComponent={SelectItem}
                 valueComponent={ValueItem}
-                data={props.sponsors.map((sponsor: Artist, key) => ({
+                data={availableSponsors.map((sponsor, key) => ({
                   value: sponsor.name,
                   label: sponsor.companyId,
                   image: sponsor.image,
@@ -367,9 +381,9 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                   id: key,
                 }))}
                 onChange={(selectedItems) => {
-                  const sponsorlist: Artist[] = [];
+                  const sponsorlist: ProposalSponsor[] = [];
                   selectedItems.forEach((item) => {
-                    let temp = props.sponsors.find(
+                    let temp = availableSponsors.find(
                       (sponsor) => sponsor.name === item
                     )!;
                     sponsorlist.push(temp);
@@ -505,10 +519,10 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                 size="md"
                 color="purple"
                 // disabled={form.isValid() ? false : true}
-                // onClick={async () => {
-                //   console.log(form.values);
-                //   setModalOpened(true);
-                // }}
+                onClick={async () => {
+                  form.setFieldValue('proposalType', 'publish');
+                  setModalOpened(true);
+                }}
                 style={{
                   marginLeft: 'auto',
                   marginRight: '0',
@@ -538,61 +552,27 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   );
 };
 
-export const getStaticProps: GetStaticProps<{
-  sponsors: Artist[];
+export const getServerSideProps: GetServerSideProps<{
   artists: Artist[];
-  stardust: number;
-}> = async () => ({
-  props: {
-    // get sponsors and artists list
-    sponsors: [
-      {
-        _id: '1',
-        brand: "Spinnin' Asia",
-        companyId: "Spinnin' Asia",
-        name: 'Emma Smith',
-        image: '/Comment-avatar-1.png',
-      },
-      {
-        _id: '2',
-        brand: 'warner Music',
-        companyId: 'Warner Bros Music',
-        name: 'Satish Patel',
-        image: '/Comment-avatar-1.png',
-      },
-      {
-        _id: '3',
-        brand: 'Starship Entertainment',
-        companyId: 'Starship Entertainment',
-        name: 'Hannah Lane',
-        image: '/Comment-avatar-1.png',
-      },
-    ],
-    artists: [
-      {
-        _id: '1',
-        brand: 'warner Music',
-        companyId: 'Warner Bros Music',
-        name: 'DJ Soda',
-        image: '/Comment-avatar-1.png',
-      },
-      {
-        _id: '2',
-        brand: 'warner Music',
-        companyId: 'Warner Bros Music',
-        name: 'Empira',
-        image: '/Comment-avatar-1.png',
-      },
-      {
-        _id: '3',
-        brand: 'warner Music',
-        companyId: 'Warner Bros Music',
-        name: 'Gotez',
-        image: '/Comment-avatar-1.png',
-      },
-    ],
-    stardust: 300,
-  },
-});
+  balance: number;
+  sponsors: ProposalSponsor[];
+}> = async (context) => {
+  const SSR = withSSRContext(context);
+  const { name } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
+  const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
+  const balance = await getWalletBalance(user.walletAddress);
+  const { message: artists } = await api.artist.get('/all');
+  const sponsorRes = await api.proposal.post('/sponsors', {
+    companiesId: artists.map((artist: Artist) => artist.companyId) as string[],
+  });
+  return {
+    props: {
+      // get sponsors and artists list
+      artists,
+      balance,
+      sponsors: sponsorRes.message.sponsors,
+    },
+  };
+};
 
 export default Create;
