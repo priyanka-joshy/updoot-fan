@@ -1,8 +1,10 @@
-import { FormField, SignUp1_Credentials, SignUp2_Credentials } from "../dataTypes"
+import {
+  FormField,
+  SignUp1_Credentials,
+  SignUp2_Credentials,
+} from '../dataTypes';
 
-
-const signUp1_formData: Record<keyof SignUp1_Credentials, FormField> =
-{
+const signUp1_formData: Record<keyof SignUp1_Credentials, FormField> = {
   username: {
     type: 'text',
     label: 'Username',
@@ -17,35 +19,34 @@ const signUp1_formData: Record<keyof SignUp1_Credentials, FormField> =
     type: 'text',
     label: 'Email address',
     placeholder: 'johndoe@gmail.com',
-  }
-}
+  },
+};
 const signUp2_formData: Record<keyof SignUp2_Credentials, FormField> = {
   password: {
     type: 'password',
     label: 'Password',
-    placeholder: 'Ajd18sjbny?'
+    placeholder: 'Ajd18sjbny?',
   },
   confirm_password: {
     type: 'password',
     label: 'Confirm Password',
-    placeholder: ''
-  }
-}
+    placeholder: '',
+  },
+};
 const signUp1_initialValues: SignUp1_Credentials = {
   username: '',
   phone_number: '',
   email: '',
-}
+};
 
 const signUp2_initialValues: SignUp2_Credentials = {
   password: '',
-  confirm_password: ''
-}
-
+  confirm_password: '',
+};
 
 export {
-  signUp1_formData, 
+  signUp1_formData,
   signUp2_formData,
   signUp1_initialValues,
-  signUp2_initialValues
-}
+  signUp2_initialValues,
+};

@@ -27,6 +27,7 @@ class Api {
 }
 
 class Router {
+  artist: Api;
   auth: Api;
   campaign: Api;
   comment: Api;
@@ -35,6 +36,7 @@ class Router {
   like: Api;
 
   constructor(origin: string) {
+    this.artist = new Api(origin, '/artist');
     this.auth = new Api(origin, '/auth');
     this.campaign = new Api(origin, '/campaign');
     this.comment = new Api(origin, '/comment');

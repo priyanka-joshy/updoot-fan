@@ -1,7 +1,5 @@
-import uploadFile from "./uploadFile";
-import getUploadedFile from "./getUploadedFile";
+import uploadFile from './uploadFile';
+import getUploadedFile from './getUploadedFile';
+import getProfilePicture from './getProfilePhoto';
 
-export {
-  uploadFile,
-  getUploadedFile
-}
+export { uploadFile, getUploadedFile, getProfilePicture };

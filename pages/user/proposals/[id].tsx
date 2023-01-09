@@ -34,13 +34,6 @@ import { WiStars } from 'react-icons/wi';
 import styles from 'styles/user/proposals/index.module.scss';
 import { withSSRContext } from 'aws-amplify';
 
-import {
-  TokCtrtWithoutSplit,
-  Chain,
-  ChainID,
-  NodeAPI,
-} from '@virtualeconomy/js-vsys';
-
 import StatCard from '@components/statCard';
 import {
   BodyText,
@@ -51,7 +44,9 @@ import {
 import Button from '@components/button';
 import { Proposal, Comment } from 'src/utils/types';
 import api from 'src/utils/api';
-import { TEST_NET, STARDUST_CTRT_ID } from 'src/utils/constants';
+import { getProfilePicture } from 'src/utils/storage';
+import getWalletBalance from 'src/utils/getWalletBalance';
+
 interface Params extends ParsedUrlQuery {
   id: string;
 }
@@ -65,6 +60,7 @@ const Proposal: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = (props) => {
   const [balance, setBalance] = useState(props.balance);
+  const [termsConfirmed, setTermsConfirmed] = useState(false);
   const [modalOpened, setModalOpened] = useState(false);
   const [successModalOpened, setSuccessModalOpened] = useState(false);
   const [imageModalOpened, setImageModalOpened] = useState(false);
@@ -166,7 +162,9 @@ const Proposal: NextPage<
             </Flex>
             <Flex justify={'space-between'}>
               <BodyText>Payment amount</BodyText>
-              <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
+              <BodyText style={{ fontWeight: '700' }}>
+                {props.costPerVote}SD
+              </BodyText>
             </Flex>
             <Flex
               justify={'space-between'}
@@ -181,6 +179,10 @@ const Proposal: NextPage<
               required
               color="violet"
               radius={'xl'}
+              checked={termsConfirmed}
+              onChange={(event) =>
+                setTermsConfirmed(event.currentTarget.checked)
+              }
               label={
                 <>
                   By clicking “Vote now”, you confirm that you have read,
@@ -201,9 +203,13 @@ const Proposal: NextPage<
 
           <Button
             style={{ width: '90%', margin: '1rem' }}
+            disabled={!termsConfirmed}
             onClick={() => {
+              api.proposal.post('/vote', {
+                username: props.username,
+                typeId: props._id,
+              });
               setModalOpened(false);
-              setSuccessModalOpened(true);
             }}>
             <TbHandStop />
             Vote Now
@@ -330,7 +336,8 @@ const Proposal: NextPage<
               <Flex align={'center'} gap="sm">
                 <img
                   style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                  src="/temp2.png"
+                  src={props.profilePicture}
+                  alt="Profile Picture"
                 />
                 <Subheading2>{props.username}</Subheading2>
               </Flex>
@@ -361,24 +368,19 @@ const Proposal: NextPage<
                 }}>
                 Comment
               </Button>
-              {sortedComments.map((item) => (
+              {sortedComments.map((comment, key) => (
                 <Stack spacing={'sm'} style={{ marginBottom: '1rem' }}>
                   <Flex align={'center'} gap="sm">
-                    {item.image ? (
-                      <img className={styles.avatarImage} src={item.image} />
-                    ) : (
-                      <img
-                        className={styles.avatarImage}
-                        src={'/authPageLogo.svg'}
-                      />
-                    )}
-
-                    <Subheading2>{item.username}</Subheading2>
+                    <img
+                      className={styles.avatarImage}
+                      src={'/authPageLogo.svg'}
+                    />
+                    <Subheading2>{comment.username}</Subheading2>
                     <BodyText color="#CCCCCC">
-                      {getDateDifferenceHours(item.createdAt)}
+                      {getDateDifferenceHours(comment.createdAt)}
                     </BodyText>
                   </Flex>
-                  <BodyText>{item.content}</BodyText>
+                  <BodyText>{comment.content}</BodyText>
                 </Stack>
               ))}
             </Stack>
@@ -433,6 +435,7 @@ const Proposal: NextPage<
                         <img
                           className={styles.avatarImage}
                           src={'/Comment-avatar-1.png'}
+                          key={index}
                         />
                       ))}
                       <UnstyledButton
@@ -523,52 +526,30 @@ const Proposal: NextPage<
 };
 
 export const getServerSideProps: GetServerSideProps<
-  Proposal & { comments: any[]; balance: number; username: string },
+  Proposal & {
+    comments: Comment[];
+    balance: number;
+    username: string;
+    profilePicture: string;
+  },
   Params
 > = async (context) => {
   const { id } = context.params!;
   const proposal = await api.proposal.get(`/${id}`);
-  const comments = await api.proposal.get(`/comments/${id}`);
   const SSR = withSSRContext(context);
   const { name } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
   const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
-  const nodeApi = NodeAPI.new(TEST_NET);
-  const chainId = new ChainID('TEST_NET', ChainID.elems.TEST_NET);
-  const chain = new Chain(nodeApi, chainId);
-  const stardustContract = new TokCtrtWithoutSplit(STARDUST_CTRT_ID, chain);
-  const balance = await stardustContract.getTokBal(user.walletAddress);
-  // get sponsor list
-  // do stardust transaction
+  const balance = await getWalletBalance(user.walletAddress);
+  const commentsRes = await api.proposal.get(`/comments/${id}`);
+  // get profile picture from s3 bucket
+  const currentProfilePhoto = await getProfilePicture(user.profilePicture);
   return {
     props: {
       ...proposal.message,
-      balance: +balance.data,
+      balance,
       username: name,
-      id: id,
-      comments: comments.message.comments,
-      sponsors: [
-        {
-          _id: '1',
-          brand: "Spinnin' Asia",
-          companyId: "Spinnin' Asia",
-          name: 'Emma Smith',
-          image: '/Comment-avatar-1.png',
-        },
-        {
-          _id: '2',
-          brand: 'warner Music',
-          companyId: 'Warner Bros Music',
-          name: 'Satish Patel',
-          image: '/Comment-avatar-1.png',
-        },
-        {
-          _id: '3',
-          brand: 'Starship Entertainment',
-          companyId: 'Starship Entertainment',
-          name: 'Hannah Lane',
-          image: '/Comment-avatar-1.png',
-        },
-      ],
+      profilePicture: currentProfilePhoto,
+      comments: commentsRes.message.comments,
     },
   };
 };

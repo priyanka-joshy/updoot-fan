@@ -1,5 +1,9 @@
 import { Stack, Table } from '@mantine/core';
-import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from 'next';
 import router from 'next/router';
 import { BsStars } from 'react-icons/bs';
 
@@ -11,21 +15,26 @@ import {
   BodyText,
   Subheading3,
 } from '@components/typography';
+import api from 'src/utils/api';
+import { withSSRContext } from 'aws-amplify';
+import getWalletBalance from 'src/utils/getWalletBalance';
 
-const Wallet: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
-  props
-) => {
+const Wallet: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = (props) => {
   return (
     <div>
       <Heading1>Wallet</Heading1>
       <Subheading1 color="#A1A1A1">Review your assets</Subheading1>
-      <div className={styles.wallet} onClick={() => router.push('wallet')}>
+      <div className={styles.wallet}>
         <Stack pr="3rem">
           <BodyText>Stardust Wallet</BodyText>
-          <Subheading3 color="#6200FF">Wallet ID: F-90d62Biuq524</Subheading3>
+          <Subheading3 color="#6200FF">
+            Wallet ID: {props.walletAddress}
+          </Subheading3>
         </Stack>
         <BsStars size={30} color="#6200FF" />
-        <Heading1> 20000</Heading1>
+        <Heading1> {props.balance}</Heading1>
       </div>
       <Subheading1>Transaction History</Subheading1>
       <Table withBorder className={styles.table}>
@@ -47,16 +56,31 @@ const Wallet: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
   );
 };
 
-export const getStaticProps: GetStaticProps<{
+export const getServerSideProps: GetServerSideProps<{
+  balance: number;
   transactions: any[];
-}> = async () => ({
-  props: {
-    transactions: new Array(20).fill({}).map(() => ({
-      action: 'Lorem ipsum...',
-      date: Date.now(),
-      amount: Math.floor(Math.random() * 2000 - 1000),
-    })),
-  },
-});
+  walletAddress: string;
+}> = async (context) => {
+  const SSR = withSSRContext(context);
+  const { name } = (await SSR.Auth.currentAuthenticatedUser()).attributes;
+  const userRes = await api.user.get(`/getUserByUsername/${name}`);
+  const { walletAddress } = userRes.message;
+  const balance = await getWalletBalance(walletAddress);
+  const { message: transactions } = await api.user.get(
+    `/transactionByUsername/all/${name}`
+  );
+  console.log([...transactions.asReceiver, ...transactions.asSender]);
+  return {
+    props: {
+      balance,
+      transactions: new Array(20).fill({}).map(() => ({
+        action: 'Lorem ipsum...',
+        date: Date.now(),
+        amount: Math.floor(Math.random() * 2000 - 1000),
+      })),
+      walletAddress,
+    },
+  };
+};
 
 export default Wallet;

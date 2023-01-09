@@ -17,7 +17,13 @@ import {
   TextInput,
   UnstyledButton,
 } from '@mantine/core';
-import { GetServerSideProps, GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import {
+  GetServerSideProps,
+  GetStaticProps,
+  InferGetServerSidePropsType,
+  InferGetStaticPropsType,
+  NextPage,
+} from 'next';
 import { useRouter } from 'next/router';
 
 import { forwardRef, useEffect, useState } from 'react';
@@ -40,29 +46,55 @@ import { useForm } from '@mantine/form';
 import { FileWithPath } from '@mantine/dropzone';
 import { uploadFile } from 'src/utils/storage';
 import { withSSRContext } from 'aws-amplify';
+import getWalletBalance from 'src/utils/getWalletBalance';
 
-const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
-  props
-) => {
+const Create: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = (props) => {
   const { user: author } = useAuth();
   const [proposalId, setProposalId] = useState('');
   const [modalOpened, setModalOpened] = useState(false);
   const [publishCompleteModal, setPublishCompleteModal] = useState(false);
   const [proposalData, setProposalData] = useState<CreateProposalFormData>();
   const router = useRouter();
-  const [availableSponsors. setAvailableSponsors] = useState<ProposalSponsor>();
 
-  useEffect(
-    () =>
-      setAvailableSponsors(
-        props.sponsors.filter((sponsor) =>
-          artist
-            .map((artist) => artist.companyId)
-            .includes(sponsor.companyId ?? '')
-        )
-      ),
-    [artist]
-  );
+  const getArtistCompany = (artists: string[]) => {
+    const artistlist: Artist[] = [];
+    artists.forEach((item) => {
+      let temp = props.artists.find((artist: Artist) => artist._id === item)!;
+      artistlist.push(temp);
+    });
+
+    const companyIds = artistlist
+      .map((artist) => artist.companyId)
+      .filter((value, index, self) => {
+        return self.indexOf(value) === index;
+      });
+    return companyIds;
+  };
+
+  const getArtistBrand = (artists: string[]) => {
+    const artistlist: Artist[] = [];
+    artists.forEach((item) => {
+      let temp = props.artists.find((artist: Artist) => artist._id === item)!;
+      artistlist.push(temp);
+    });
+
+    const brands = artistlist
+      .map((artist) => artist.brand)
+      .filter((value, index, self) => {
+        return self.indexOf(value) === index;
+      });
+    return brands;
+  };
+  const getSponsorlist = (artists: string[]) => {
+    const companyIds = getArtistCompany(artists);
+
+    const result = props.sponsors.filter(
+      (sponsor) => sponsor.companyId && companyIds.includes(sponsor.companyId)
+    );
+    return result;
+  };
 
   interface ItemProps extends React.ComponentPropsWithoutRef<'div'> {
     image: string;
@@ -143,40 +175,43 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
     if (titleImageUpload instanceof Error) {
       throw new Error('upload failed title image');
     }
-// upload supporting material to S3 bucket
-    const supportMaterialUpload = await Promise.all(
-      proposalData.supportingMaterials!.map(async (material) => {
-        const uploadres = await uploadFile(
-          author!.attributes.email,
-          `proposals/${new Date().toISOString()}--${proposalData.title}`,
-          material
-        );
-        console.log(uploadres);
-        if (uploadres instanceof Error) {
-          throw new Error('upload failed title image');
-        }
-        return uploadres.key;
-      })
-    );
-    console.log(supportMaterialUpload);
+    // upload supporting material to S3 bucket
+    let supportMaterialUpload: string[] = [];
+    if (proposalData.supportingMaterials) {
+      supportMaterialUpload = await Promise.all(
+        proposalData.supportingMaterials!.map(async (material) => {
+          const uploadres = await uploadFile(
+            author!.attributes.email,
+            `proposals/${new Date().toISOString()}--${proposalData.title}`,
+            material
+          );
+          if (uploadres instanceof Error) {
+            throw new Error('upload failed title image');
+          }
+          return uploadres.key;
+        })
+      );
+    }
 
     const body = {
       ...proposalData,
       supportingMaterials: supportMaterialUpload,
-      companyId: '',
-      brand: '',
+      companyId: getArtistCompany(proposalData.artistId),
+      brand: getArtistBrand(proposalData.artistId)[0],
       type: 'proposal',
       titleImage: titleImageUpload.key,
     };
+    console.log(body);
+
     const res = await api.proposal.post('/submit', body);
-    setProposalId(res);
+    setProposalId(res.message.proposalId);
     setPublishCompleteModal(true);
   };
   interface CreateProposalFormData {
     title: string;
     details: string;
     companyId: string;
-    artistId: Artist[];
+    artistId: string[];
     supportingMaterials: File[] | null;
     brand: string;
     sponsors: ProposalSponsor[];
@@ -324,35 +359,22 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
       <form
         onSubmit={form.onSubmit(async (values) => {
           setProposalData(values);
-          console.log(values);
           setModalOpened(true);
         })}>
         <Grid gutter={'sm'} style={{ padding: '1rem' }}>
           <Grid.Col md={8} style={{ marginRight: '2rem' }}>
             <Heading1>Create proposal</Heading1>
-            {/* <pre>{JSON.stringify(form.values, null, 2)}</pre>
-            <pre>{JSON.stringify(form.errors, null, 2)}</pre> */}
+            {/* <pre>{JSON.stringify(form.values, null, 2)}</pre> */}
             <Stack className={styles.inputContainer}>
               <Heading3>Artist</Heading3>
               <MultiSelect
+                {...form.getInputProps('artistId')}
                 placeholder="Which artist is this proposal for?"
                 itemComponent={SelectItem}
                 valueComponent={ValueItem}
-                onChange={(selectedItems) => {
-                  const artistlist: Artist[] = [];
-                  selectedItems.forEach((item) => {
-                    let temp = props.artists.find(
-                      (artist) => artist.name === item
-                    )!;
-                    artistlist.push(temp);
-                  });
-                  form.setFieldValue('artistId', artistlist);
-
-                  //filter sponsorlist for valid sponsors from same artist company
-                }}
-                data={props.artists.map((artist: Artist, key) => ({
+                data={props.artists.map((artist: Artist, key: number) => ({
                   value: artist._id,
-                  // name: artist.name,
+                  name: artist.name,
                   label: artist.companyId,
                   image: artist.image,
                   id: key,
@@ -364,32 +386,24 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                   !selected &&
                   item.label!.toLowerCase().includes(value.toLowerCase().trim())
                 }
-                {...form.getInputProps('artistId')}
               />
             </Stack>
+
             <Stack className={styles.inputContainer}>
               <Heading3>Sponsors</Heading3>
               <MultiSelect
                 placeholder="Type the artist name to find a related sponsor"
                 itemComponent={SelectItem}
                 valueComponent={ValueItem}
-                data={availableSponsors.map((sponsor, key) => ({
-                  value: sponsor.name,
-                  label: sponsor.companyId,
-                  image: sponsor.image,
-                  name: sponsor.name,
-                  id: key,
-                }))}
-                onChange={(selectedItems) => {
-                  const sponsorlist: ProposalSponsor[] = [];
-                  selectedItems.forEach((item) => {
-                    let temp = availableSponsors.find(
-                      (sponsor) => sponsor.name === item
-                    )!;
-                    sponsorlist.push(temp);
-                  });
-                  form.setFieldValue('sponsors', sponsorlist);
-                }}
+                data={getSponsorlist(form.values.artistId).map(
+                  (sponsor, key) => ({
+                    value: sponsor._id,
+                    name: sponsor.username,
+                    label: sponsor.companyId,
+                    image: sponsor.profilePicture,
+                    id: key,
+                  })
+                )}
                 searchable
                 nothingFound="No Sponsors"
                 maxDropdownHeight={400}
@@ -400,6 +414,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                 {...form.getInputProps('sponsors')}
               />
             </Stack>
+
             <Stack className={styles.inputContainer}>
               <Heading3>Title Image</Heading3>
               <Dropzone
@@ -518,6 +533,7 @@ const Create: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (
                 type="primary"
                 size="md"
                 color="purple"
+                disabled={!(form.isTouched() && form.isValid())}
                 // disabled={form.isValid() ? false : true}
                 onClick={async () => {
                   form.setFieldValue('proposalType', 'publish');
@@ -567,7 +583,6 @@ export const getServerSideProps: GetServerSideProps<{
   });
   return {
     props: {
-      // get sponsors and artists list
       artists,
       balance,
       sponsors: sponsorRes.message.sponsors,

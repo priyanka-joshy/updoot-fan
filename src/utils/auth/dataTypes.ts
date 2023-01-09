@@ -1,5 +1,5 @@
-import { CognitoUser } from "@aws-amplify/auth";
-import { Value } from "react-phone-number-input";
+import { CognitoUser } from '@aws-amplify/auth';
+import { Value } from 'react-phone-number-input';
 
 type UserRole = 'fan' | 'staff';
 interface UserAttributes {
@@ -14,12 +14,12 @@ interface CognitoUserExt extends CognitoUser {
   attributes: UserAttributes;
   signInUserSession: {
     accessToken: {
-      jwtToken: string,
+      jwtToken: string;
       payload: {
-        "cognito:groups": UserRole[] | undefined
-      }
-    }
-  }
+        'cognito:groups': UserRole[] | undefined;
+      };
+    };
+  };
 }
 
 interface LoginCredentials {
@@ -27,21 +27,21 @@ interface LoginCredentials {
   password: string;
 }
 interface SignUp1_Credentials {
-  username: string,
-  phone_number: Value | undefined,
-  email: string
+  username: string;
+  phone_number: Value | undefined;
+  email: string;
 }
 interface SignUp2_Credentials {
-  password: string,
+  password: string;
   confirm_password: string;
 }
 interface SignUpCredentials extends SignUp1_Credentials {
-  password: string
+  password: string;
 }
 interface ResetPassword {
-  email: string,
-  code: string,
-  password: string
+  email: string;
+  code: string;
+  password: string;
 }
 
 interface ConfirmationCredentials {
@@ -60,14 +60,14 @@ type AuthProcessI =
   | 'forgotPassword';
 
 interface FormField {
-  type: 'text' | 'password',
-  label: string,
-  placeholder: string,
+  type: 'text' | 'password';
+  label: string;
+  placeholder: string;
 }
 
 interface ChangePassword {
-  old_password: string,
-  new_password: string,
+  old_password: string;
+  new_password: string;
   confirm_password: string;
 }
 
@@ -82,5 +82,5 @@ export type {
   PasswordReset,
   AuthProcessI,
   FormField,
-  ChangePassword
-}
+  ChangePassword,
+};
