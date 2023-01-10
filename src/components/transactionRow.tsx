@@ -1,26 +1,38 @@
 import { Flex, UnstyledButton } from '@mantine/core';
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 import { TbDotsVertical } from 'react-icons/tb';
+import { TxType } from 'src/utils/types';
 import { Subheading3 } from './typography';
 
 interface IProps {
-  action: string;
+  action: TxType;
   date: EpochTimeStamp;
   amount: number;
 }
 
 const TransactionRow = (props: IProps) => {
-  const date = new Date(props.date).toDateString();
+  const date = new Date(props.date).toLocaleString();
+
+  const txResult: Record<TxType, 'increase' | 'decrease'> = {
+    'Comment Reward': 'increase',
+    Vote: 'decrease',
+    'Create Proposal': 'decrease',
+    Refund: 'increase',
+  };
+
   return (
     <tr>
       <td>
         <Flex align="center">
-          {props.amount > 0 ? (
+          {txResult[props.action] === 'increase' ? (
             <IoMdArrowDropup color="#0FD293" size={36} />
           ) : (
             <IoMdArrowDropdown color="#FF0055" size={36} />
           )}
-          <Subheading3 color={props.amount > 0 ? '#0FD293' : '#FF0055'}>
+          <Subheading3
+            color={
+              txResult[props.action] === 'increase' ? '#0FD293' : '#FF0055'
+            }>
             {props.amount} STARDUST
           </Subheading3>
         </Flex>
@@ -30,7 +42,10 @@ const TransactionRow = (props: IProps) => {
       </td>
       <td>
         <Subheading3>
-          {date.split(' ').slice(1, 3).join(' ') + ', ' + date.split(' ').at(3)}{' '}
+          {date}
+          {/* {date.split(' ').slice(1, 3).join(' ') +
+            ', ' +
+            date.split(' ').at(3)}{' '}
           /{' '}
           {Intl.DateTimeFormat('hk-HK', {
             timeStyle: 'short',
@@ -38,7 +53,7 @@ const TransactionRow = (props: IProps) => {
           })
             .format(new Date())
             .toUpperCase()}{' '}
-          ({Intl.DateTimeFormat().resolvedOptions().timeZone})
+          ({Intl.DateTimeFormat().resolvedOptions().timeZone}) */}
         </Subheading3>
       </td>
       <td>

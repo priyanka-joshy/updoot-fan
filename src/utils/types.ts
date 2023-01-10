@@ -65,6 +65,7 @@ export interface Proposal extends PCBase {
   status: 'Pending' | 'Approval' | 'Rejected' | 'Draft';
   supportingMaterials?: string[];
 }
+export type TxType = 'Comment Reward' | 'Vote' | 'Create Proposal' | 'Refund';
 
 export interface Transaction {
   amount: number;
@@ -73,7 +74,7 @@ export interface Transaction {
   status: 'Success' | 'Failed';
   timestamp: EpochTimeStamp;
   txnId: string;
-  type: 'Debit' | 'Credit';
+  type: TxType;
 }
 
 export interface User {
