@@ -74,6 +74,7 @@ const Proposals: NextPage<
       <Flex gap="xl" wrap="wrap">
         {filteredPC.map((pc) => (
           <PCCard
+            isProposal
             {...pc}
             bookmarked={
               showType === 'Proposals'

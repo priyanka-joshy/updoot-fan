@@ -28,9 +28,14 @@ const bookmarkIconProps: SVGAttributes<SVGElement>[] = [
   { fill: '#6200FF', stroke: '#6200FF' },
 ];
 
-const PCCard = (
-  props: (Proposal | Campaign) & { liked?: boolean; bookmarked?: boolean }
-) => {
+const PCCard = ({
+  isProposal = false,
+  ...props
+}: (Proposal | Campaign) & {
+  liked?: boolean;
+  bookmarked?: boolean;
+  isProposal?: boolean;
+}) => {
   const router = useRouter();
   const { user } = useAuth();
   const [bookmarkState, setBookmarkState] = useState<ButtonState>(
@@ -42,7 +47,14 @@ const PCCard = (
   return (
     <Stack
       className={styles.container}
-      onClick={() => router.push(`proposals/${props._id}`)}>
+      onClick={() => {
+        isProposal
+          ? router.push(`proposals/${props._id}`)
+          : router.push({
+              pathname: `proposals/create`,
+              query: { draftId: props._id },
+            });
+      }}>
       {props.titleImage ? (
         <img src="/authPageLogo.svg" className={styles.image} />
       ) : (
