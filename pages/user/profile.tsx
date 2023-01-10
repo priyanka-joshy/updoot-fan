@@ -99,7 +99,9 @@ const Profile: NextPage<
             wrap="wrap"
             justify={props.proposals.length === 0 ? 'center' : undefined}>
             {props.proposals.length > 0 ? (
-              props.proposals.map((proposal) => <PCCard {...proposal} />)
+              props.proposals.map((proposal) => (
+                <PCCard {...proposal} isProposal />
+              ))
             ) : (
               <Stack align="center" justify="center" h="40vh" w="30%">
                 <img src="/proposalEmpty.png" />
@@ -169,7 +171,9 @@ const Profile: NextPage<
             wrap="wrap"
             justify={props.proposals.length === 0 ? 'center' : undefined}>
             {props.proposals.length > 0 ? (
-              props.proposals.map((proposal) => <PCCard {...proposal} />)
+              props.proposals.map((proposal) => (
+                <PCCard {...proposal} isProposal />
+              ))
             ) : (
               <EmptyState
                 title="No likes yet."
@@ -190,7 +194,7 @@ const Profile: NextPage<
             }>
             {props.bookmarks.proposalBookmarks.length > 0 ? (
               props.bookmarks.proposalBookmarks.map((proposal) => (
-                <PCCard {...proposal} bookmarked />
+                <PCCard {...proposal} bookmarked isProposal />
               ))
             ) : (
               <EmptyState

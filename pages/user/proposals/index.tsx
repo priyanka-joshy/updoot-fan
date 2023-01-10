@@ -85,6 +85,7 @@ const Proposals: NextPage = () => {
       <Flex gap="xl" wrap="wrap">
         {filteredPC!.map((pc, key) => (
           <PCCard
+            isProposal
             key={key}
             {...pc}
             bookmarked={
