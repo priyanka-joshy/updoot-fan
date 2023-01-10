@@ -235,7 +235,7 @@ export const getServerSideProps: GetServerSideProps<{
   const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
   const balance = await getWalletBalance(user.walletAddress);
   const bookmarkRes = await api.user.get(`/bookmark/${email}`);
-  const commentRes = await api.comment.get(`/get-by-username/${name}`);
+  const commentRes = await api.comment.get(`/getByUsername/${name}`);
   const proposalRes = await api.proposal.get(`/user/${email}`);
   const proposalBookmarks: Proposal[] = [];
   for (const proposalId of bookmarkRes.message.bookmark?.proposalBookmarks ??
