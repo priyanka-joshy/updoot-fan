@@ -27,9 +27,6 @@ const Profile: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = (props) => {
   const router = useRouter();
-  const drafts = props.proposals.filter(
-    (proposal) => proposal.status === 'Draft'
-  );
 
   return (
     <div style={{ height: '100vh' }}>
@@ -123,9 +120,13 @@ const Profile: NextPage<
           <Flex
             gap="xl"
             wrap="wrap"
-            justify={drafts.length === 0 ? 'center' : undefined}>
-            {drafts.length > 0 ? (
-              <></>
+            justify={props.drafts.length === 0 ? 'center' : undefined}>
+            {props.drafts.length > 0 ? (
+              <>
+                {props.drafts.map((draft) => (
+                  <PCCard {...draft} />
+                ))}
+              </>
             ) : (
               <EmptyState
                 title="No drafts yet."
@@ -218,6 +219,7 @@ export const getServerSideProps: GetServerSideProps<{
   bookmarks: { campaignBookmarks: Campaign[]; proposalBookmarks: Proposal[] };
   comments: Comment[];
   likes: any[];
+  drafts: Proposal[];
   proposals: Proposal[];
   user: User;
   profilePicture: string;
@@ -243,6 +245,8 @@ export const getServerSideProps: GetServerSideProps<{
     const { message: campaign } = await api.campaign.get(`/${campaignId}`);
     proposalBookmarks.push(campaign);
   }
+  const { message: drafts } = await api.proposal.get(`/userDrafts/${email}`);
+
   const currentProfilePhoto = await getProfilePicture(user.profilePicture);
   return {
     props: {
@@ -252,6 +256,7 @@ export const getServerSideProps: GetServerSideProps<{
       likes: [],
       profilePicture: currentProfilePhoto,
       proposals: proposalRes.message?.proposalList ?? [],
+      drafts: drafts.proposalList,
       user,
       votes: new Array(0).fill({}).map(() => ({
         title:
