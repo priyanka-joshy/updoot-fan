@@ -42,10 +42,11 @@ import {
   Subheading2,
 } from '@components/typography';
 import Button from '@components/button';
-import { Proposal, Comment } from 'src/utils/types';
+import { Proposal, Comment, User } from 'src/utils/types';
 import api from 'src/utils/api';
 import { getProfilePicture } from 'src/utils/storage';
 import getWalletBalance from 'src/utils/getWalletBalance';
+import UserBadge from '@components/userBadge';
 
 interface Params extends ParsedUrlQuery {
   id: string;
@@ -122,7 +123,7 @@ const Proposal: NextPage<
                 style={{ width: '100%', borderRadius: '10px' }}
               />
             </Carousel.Slide>
-            {['/temp1.png', '/temp2.png', '/temp3.png'].map((src) => (
+            {['/temp1.png', '/temp2.png', '/temp3.png'].map((src, key) => (
               <Carousel.Slide
                 style={{ justifyContent: 'center', display: 'flex' }}>
                 <img
@@ -131,6 +132,7 @@ const Proposal: NextPage<
                     border: '1px solid #CCCCCC',
                     borderRadius: '10px',
                   }}
+                  key={key}
                   src={src}
                 />
               </Carousel.Slide>
@@ -305,9 +307,10 @@ const Proposal: NextPage<
                   style={{ width: '100%', borderRadius: '10px' }}
                 />
               </Carousel.Slide>
-              {['/temp1.png', '/temp2.png', '/temp3.png'].map((src) => (
+              {['/temp1.png', '/temp2.png', '/temp3.png'].map((src, key) => (
                 <Carousel.Slide
-                  style={{ justifyContent: 'center', display: 'flex' }}>
+                  style={{ justifyContent: 'center', display: 'flex' }}
+                  key={key}>
                   <img
                     height="100%"
                     style={{
@@ -333,14 +336,12 @@ const Proposal: NextPage<
                   {props.comments.length} comments
                 </Subheading1>
               </Flex>
-              <Flex align={'center'} gap="sm">
-                <img
-                  style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                  src={props.profilePicture}
-                  alt="Profile Picture"
-                />
-                <Subheading2>{props.username}</Subheading2>
-              </Flex>
+              <UserBadge
+                profilePicture={props.profilePicture}
+                username={props.username}
+                role={props.user.role}
+              />
+              {/* <pre>{JSON.stringify(props.user, null, 2)}</pre> */}
               <Textarea
                 radius="md"
                 placeholder="What do you think?"
@@ -369,7 +370,10 @@ const Proposal: NextPage<
                 Comment
               </Button>
               {sortedComments.map((comment, key) => (
-                <Stack spacing={'sm'} style={{ marginBottom: '1rem' }}>
+                <Stack
+                  spacing={'sm'}
+                  style={{ marginBottom: '1rem' }}
+                  key={key}>
                   <Flex align={'center'} gap="sm">
                     <img
                       className={styles.avatarImage}
@@ -529,6 +533,7 @@ export const getServerSideProps: GetServerSideProps<
   Proposal & {
     comments: Comment[];
     balance: number;
+    user: User;
     username: string;
     profilePicture: string;
   },
@@ -547,6 +552,7 @@ export const getServerSideProps: GetServerSideProps<
     props: {
       ...proposal.message,
       balance,
+      user,
       username: name,
       profilePicture: currentProfilePhoto,
       comments: commentsRes.message.comments,
