@@ -58,7 +58,7 @@ export interface Comment {
 
 export interface Like {
   type: string;
-  typeid: string;
+  typeId: string;
   username: string;
   timestamp: number;
 }
