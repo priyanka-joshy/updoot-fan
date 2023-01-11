@@ -15,13 +15,13 @@ import {
   Subheading1,
 } from '@components/typography';
 import PCCard from '@components/PCCard';
-import VoteRow from '@components/voteRow';
 import Button from '@components/button';
 import api from 'src/utils/api';
 import { Campaign, Comment, Proposal, User } from 'src/utils/types';
 import { withSSRContext } from 'aws-amplify';
 import { getProfilePicture } from 'src/utils/storage';
 import getWalletBalance from 'src/utils/getWalletBalance';
+import { UserVotes } from '@components/profileTabs/votes';
 
 const Profile: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -154,34 +154,20 @@ const Profile: NextPage<
           )}
         </Tabs.Panel>
         <Tabs.Panel value="votes" pt="xs">
-          {props.votes.length > 0 ? (
-            props.votes.map((vote) => <VoteRow {...vote} />)
-          ) : (
-            <Flex justify="center">
-              <EmptyState
-                title="No votes yet."
-                text="Actively drive ideas by voting on proposals"
-              />
-            </Flex>
-          )}
+          <UserVotes />
         </Tabs.Panel>
         <Tabs.Panel value="likes" pt="xs">
-          <Flex
-            gap="xl"
-            wrap="wrap"
-            justify={props.proposals.length === 0 ? 'center' : undefined}>
-            {props.proposals.length > 0 ? (
-              props.proposals.map((proposal) => (
-                <PCCard {...proposal} isProposal />
-              ))
-            ) : (
+          {props.likes.length > 0 ? (
+            props.likes.map((proposal) => <PCCard {...proposal} isProposal />)
+          ) : (
+            <Flex justify="center">
               <EmptyState
                 title="No likes yet."
                 text="Support ideas and engage with the community by liking
                   proposals"
               />
-            )}
-          </Flex>
+            </Flex>
+          )}
         </Tabs.Panel>
         <Tabs.Panel value="bookmarks" pt="xs">
           <Flex
@@ -227,7 +213,6 @@ export const getServerSideProps: GetServerSideProps<{
   proposals: Proposal[];
   user: User;
   profilePicture: string;
-  votes: any[];
 }> = async (context) => {
   const SSR = withSSRContext(context);
   const { email, name } = (await SSR.Auth.currentAuthenticatedUser())
@@ -235,7 +220,8 @@ export const getServerSideProps: GetServerSideProps<{
   const { message: user } = await api.user.get(`/getUserByUsername/${name}`);
   const balance = await getWalletBalance(user.walletAddress);
   const bookmarkRes = await api.user.get(`/bookmark/${email}`);
-  const commentRes = await api.comment.get(`/get-by-username/${name}`);
+  const commentRes = await api.comment.get(`/getByUsername/${name}`);
+  const { message: likes } = await api.user.get(`/like/getAllLikes/${email}`);
   const proposalRes = await api.proposal.get(`/user/${email}`);
   const proposalBookmarks: Proposal[] = [];
   for (const proposalId of bookmarkRes.message.bookmark?.proposalBookmarks ??
@@ -257,18 +243,11 @@ export const getServerSideProps: GetServerSideProps<{
       balance,
       bookmarks: { proposalBookmarks, campaignBookmarks },
       comments: commentRes.message.comment,
-      likes: [],
+      likes: likes,
       profilePicture: currentProfilePhoto,
       proposals: proposalRes.message?.proposalList ?? [],
       drafts: drafts.proposalList,
       user,
-      votes: new Array(0).fill({}).map(() => ({
-        title:
-          "I quoted one of Valtina's lyric to a merch. Should we have this for the event?",
-        timestamp: Date.now(),
-        amount: -1000,
-        src: '/temp5.png',
-      })),
     },
   };
 };
