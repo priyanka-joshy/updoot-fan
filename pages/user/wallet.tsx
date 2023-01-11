@@ -4,7 +4,6 @@ import {
   InferGetServerSidePropsType,
   NextPage,
 } from 'next';
-import router from 'next/router';
 import { BsStars } from 'react-icons/bs';
 
 import styles from 'styles/user/wallet.module.scss';
@@ -18,6 +17,7 @@ import {
 import api from 'src/utils/api';
 import { withSSRContext } from 'aws-amplify';
 import getWalletBalance from 'src/utils/getWalletBalance';
+import { Transaction } from 'src/utils/types';
 
 const Wallet: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -69,14 +69,19 @@ export const getServerSideProps: GetServerSideProps<{
   const { message: transactions } = await api.user.get(
     `/transactionByUsername/all/${name}`
   );
+  const allTransactions: Transaction[] = [
+    ...transactions.asReceiver,
+    ...transactions.asSender,
+  ];
+
   console.log([...transactions.asReceiver, ...transactions.asSender]);
   return {
     props: {
       balance,
-      transactions: new Array(20).fill({}).map(() => ({
-        action: 'Lorem ipsum...',
-        date: Date.now(),
-        amount: Math.floor(Math.random() * 2000 - 1000),
+      transactions: allTransactions.map((tx) => ({
+        action: tx.type,
+        date: tx.timestamp,
+        amount: tx.amount,
       })),
       walletAddress,
     },
