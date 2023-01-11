@@ -22,6 +22,7 @@ import { withSSRContext } from 'aws-amplify';
 import { getProfilePicture } from 'src/utils/storage';
 import getWalletBalance from 'src/utils/getWalletBalance';
 import { UserVotes } from '@components/profileTabs/votes';
+import CommentRow from '@components/commentRow';
 
 const Profile: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -139,11 +140,13 @@ const Profile: NextPage<
         </Tabs.Panel>
         <Tabs.Panel value="comments" pt="xs">
           {props.comments.length > 0 ? (
-            <>
-              {props.comments.map((a) => (
-                <Heading1>{a.content}</Heading1>
-              ))}
-            </>
+            props.comments.map((a) => (
+              <CommentRow
+                content={a.content}
+                timestamp={a.createdAt}
+                status={a.approval.status}
+              />
+            ))
           ) : (
             <Flex justify="center">
               <EmptyState
