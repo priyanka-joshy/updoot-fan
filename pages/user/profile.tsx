@@ -233,12 +233,26 @@ export const getServerSideProps: GetServerSideProps<{
   const commentRes = await api.comment.get(`/getByUsername/${name}`);
   const { message: likesRes }: { message: { likes: Like[] } } =
     await api.user.get(`/like/getAllLikes/${name}`);
-  const proposalRes = await api.proposal.get(`/user/${email}`);
+  const proposalRes: { message: { proposalList: Proposal[] } } =
+    await api.proposal.get(`/user/${email}`);
+
+  const proposals: Proposal[] = await Promise.all(
+    proposalRes.message.proposalList.map(async (proposal) => {
+      const urlRes =
+        proposal.titleImage && (await getUploadedFile(proposal.titleImage));
+      const imageURL = !urlRes || urlRes instanceof Error ? '' : urlRes;
+      return { ...proposal, titleImage: imageURL };
+    })
+  );
+
   const proposalBookmarks: Proposal[] = [];
   for (const proposalId of bookmarkRes.message.bookmark?.proposalBookmarks ??
     []) {
     const { message: proposal } = await api.proposal.get(`/${proposalId}`);
-    proposalBookmarks.push(proposal);
+    const urlRes =
+      proposal.titleImage && (await getUploadedFile(proposal.titleImage));
+    const imageURL = !urlRes || urlRes instanceof Error ? '' : urlRes;
+    proposalBookmarks.push({ ...proposal, titleImage: imageURL });
   }
   const campaignBookmarks: Campaign[] = [];
   for (const campaignId of bookmarkRes.message.bookmark?.campaignBookmarks ??
@@ -269,7 +283,7 @@ export const getServerSideProps: GetServerSideProps<{
       comments: commentRes.message.comment,
       likes: proposalLikes,
       profilePicture: currentProfilePhoto,
-      proposals: proposalRes.message?.proposalList ?? [],
+      proposals: proposals,
       drafts: drafts.proposalList,
       user,
     },
