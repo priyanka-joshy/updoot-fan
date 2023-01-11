@@ -7,6 +7,7 @@ import {
   Flex,
   Grid,
   Group,
+  Input,
   Modal,
   MultiSelect,
   MultiSelectValueProps,
@@ -16,10 +17,11 @@ import {
   TextInput,
   UnstyledButton,
 } from '@mantine/core';
-import { DatePicker } from '@mantine/dates';
 import {
   GetServerSideProps,
+  GetStaticProps,
   InferGetServerSidePropsType,
+  InferGetStaticPropsType,
   NextPage,
 } from 'next';
 import { useRouter } from 'next/router';
@@ -28,13 +30,7 @@ import { forwardRef, useEffect, useState } from 'react';
 import api from 'src/utils/api';
 import styles from 'styles/user/proposals/create.module.scss';
 
-import {
-  TbCalendar,
-  TbChevronLeft,
-  TbChevronUp,
-  TbEdit,
-  TbUpload,
-} from 'react-icons/tb';
+import { TbChevronLeft, TbChevronUp, TbEdit, TbUpload } from 'react-icons/tb';
 import {
   BodyText,
   Heading1,
@@ -46,6 +42,9 @@ import StatCard from '@components/statCard';
 import { useAuth } from 'src/utils/auth/authContext';
 import Dropzone from '@components/dropzone';
 import { Artist, Proposal, ProposalSponsor } from 'src/utils/types';
+import { useForm } from '@mantine/form';
+import { FileWithPath } from '@mantine/dropzone';
+import { uploadFile } from 'src/utils/storage';
 import { withSSRContext } from 'aws-amplify';
 import getWalletBalance from 'src/utils/getWalletBalance';
 
@@ -53,67 +52,66 @@ const Create: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = (props) => {
   const { user: author } = useAuth();
-  const [artist, setArtist] = useState<Artist[]>([]);
-  const [sponsors, setSponsors] = useState<ProposalSponsor[]>([]);
-  const [availableSponsors, setAvailableSponsors] = useState<ProposalSponsor[]>(
-    []
-  );
-  const [title, setTitle] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
-  const [titleImage, setTitleImage] = useState<File | null>();
-  // titleImage => uploaded on aws bucket, link sent to heroku db
-  const [supportingFiles, setSupportingFiles] = useState<File[]>([]);
-  // SupportFiles => uploaded on aws bucket, link sent to heroku db
-  const [proposalId, setProposalId] = useState<string>('0');
+  const [proposalId, setProposalId] = useState('');
   const [modalOpened, setModalOpened] = useState(false);
   const [publishCompleteModal, setPublishCompleteModal] = useState(false);
+  const [proposalData, setProposalData] = useState<CreateProposalFormData>();
   const router = useRouter();
 
-  useEffect(
-    () =>
-      setAvailableSponsors(
-        props.sponsors.filter((sponsor) =>
-          artist
-            .map((artist) => artist.companyId)
-            .includes(sponsor.companyId ?? '')
-        )
-      ),
-    [artist]
-  );
+  const getArtistCompany = (artists: string[]) => {
+    const artistlist: Artist[] = [];
+    artists.forEach((item) => {
+      let temp = props.artists.find((artist: Artist) => artist._id === item)!;
+      artistlist.push(temp);
+    });
+
+    const companyIds = artistlist
+      .map((artist) => artist.companyId)
+      .filter((value, index, self) => {
+        return self.indexOf(value) === index;
+      });
+    return companyIds;
+  };
+
+  const getArtistBrand = (artists: string[]) => {
+    const artistlist: Artist[] = [];
+    artists.forEach((item) => {
+      let temp = props.artists.find((artist: Artist) => artist._id === item)!;
+      artistlist.push(temp);
+    });
+
+    const brands = artistlist
+      .map((artist) => artist.brand)
+      .filter((value, index, self) => {
+        return self.indexOf(value) === index;
+      });
+    return brands;
+  };
+  const getSponsorlist = (artists: string[]) => {
+    const companyIds = getArtistCompany(artists);
+
+    const result = props.sponsors.filter(
+      (sponsor) => sponsor.companyId && companyIds.includes(sponsor.companyId)
+    );
+    return result;
+  };
 
   interface ItemProps extends React.ComponentPropsWithoutRef<'div'> {
     image: string;
     label: string;
     value: string;
+    name: string;
   }
 
-  const createProposal = () => {
-    const body: Partial<Proposal> = {
-      title: title,
-      details: description,
-      supportingMaterials: ['test'],
-      artistId: artist.map((a) => a._id),
-      companyId: 'companyId',
-      brand: 'brand',
-      sponsors: sponsors.map((a) => a._id),
-      author: author?.attributes.email,
-      titleImage: 'test',
-      // startTime, endTime
-    };
-    console.log(body);
-    return body;
-  };
   const SelectItem = forwardRef<HTMLDivElement, ItemProps>(
-    ({ image, label, value, ...others }: ItemProps, ref) => (
+    ({ image, label, value, name, ...others }: ItemProps, ref) => (
       <div ref={ref} {...others}>
         <div className={styles.selectItem}>
           <Group noWrap>
             <Avatar src={image} />
             <div>
               <Text>
-                {value} ({label})
+                {name} ({label})
               </Text>
             </div>
           </Group>
@@ -125,6 +123,7 @@ const Create: NextPage<
   function ValueItem({
     value,
     label,
+    name,
     image,
     onRemove,
     classNames,
@@ -132,6 +131,7 @@ const Create: NextPage<
   }: MultiSelectValueProps & {
     value: string;
     image: string;
+    name: string;
   }) {
     return (
       <div {...others}>
@@ -148,7 +148,7 @@ const Create: NextPage<
           <Avatar className={styles.logo} src={image} />
 
           <Box sx={{ lineHeight: 1, fontSize: 12 }}>
-            {value}({label})
+            {name}({label})
           </Box>
           <CloseButton
             onMouseDown={onRemove}
@@ -161,6 +161,91 @@ const Create: NextPage<
       </div>
     );
   }
+
+  const submitProposal = async () => {
+    // upload title image to S3 Bucket
+    if (!proposalData) {
+      return;
+    }
+    const titleImageUpload = await uploadFile(
+      author!.attributes.email,
+      `proposals/${new Date().toISOString()}--${proposalData.title}`,
+      proposalData.titleImage!
+    );
+    if (titleImageUpload instanceof Error) {
+      throw new Error('upload failed title image');
+    }
+    // upload supporting material to S3 bucket
+    let supportMaterialUpload: string[] = [];
+    if (proposalData.supportingMaterials) {
+      supportMaterialUpload = await Promise.all(
+        proposalData.supportingMaterials!.map(async (material) => {
+          const uploadres = await uploadFile(
+            author!.attributes.email,
+            `proposals/${new Date().toISOString()}--${proposalData.title}`,
+            material
+          );
+          if (uploadres instanceof Error) {
+            throw new Error('upload failed title image');
+          }
+          return uploadres.key;
+        })
+      );
+    }
+
+    const body = {
+      ...proposalData,
+      supportingMaterials: supportMaterialUpload,
+      companyId: getArtistCompany(proposalData.artistId),
+      brand: getArtistBrand(proposalData.artistId)[0],
+      type: 'proposal',
+      titleImage: titleImageUpload.key,
+    };
+    console.log(body);
+
+    const res = await api.proposal.post('/submit', body);
+    setProposalId(res.message.proposalId);
+    setPublishCompleteModal(true);
+  };
+  interface CreateProposalFormData {
+    title: string;
+    details: string;
+    companyId: string;
+    artistId: string[];
+    supportingMaterials: File[] | null;
+    brand: string;
+    sponsors: ProposalSponsor[];
+    author: string;
+    titleImage: FileWithPath | null;
+    proposalType: string;
+  }
+
+  const form = useForm<CreateProposalFormData>({
+    validateInputOnBlur: true,
+    initialValues: {
+      title: '',
+      details: '',
+      companyId: '',
+      artistId: [],
+      supportingMaterials: null,
+      brand: '',
+      sponsors: [],
+      author: author!.attributes.email,
+      titleImage: null,
+      proposalType: '',
+    },
+
+    validate: {
+      title: (value) => (value ? null : 'Title is required'),
+      details: (value) => (value ? null : 'Description is required'),
+      artistId: (value) =>
+        value.length > 0 ? null : 'please select at least one artist',
+      sponsors: (value) =>
+        value.length > 0 ? null : 'please select at least one sponsor',
+      titleImage: (value) => (value ? null : 'please upload a title image'),
+    },
+  });
+
   return (
     <div>
       <Modal
@@ -168,75 +253,74 @@ const Create: NextPage<
         radius={'xl'}
         opened={modalOpened}
         onClose={() => setModalOpened(false)}>
-        <Stack align={'center'}>
-          <TbUpload color="#6200FF" size={36} />
-          <Heading3 style={{ fontWeight: '600' }}>
-            Publish Your Proposal
-          </Heading3>
-          <Subheading1>Publishing requires StarDust to be valid</Subheading1>
-          <Stack
-            spacing={'sm'}
-            style={{
-              borderRadius: '1rem',
-              border: '1px solid #DFE0EB',
-              padding: '1rem',
-              marginTop: '2.5rem',
-              width: '90%',
-            }}>
-            <Flex justify={'space-between'}>
-              <BodyText>Stardust Balance</BodyText>
-              <BodyText>{props.balance}SD</BodyText>
-            </Flex>
-            <Flex justify={'space-between'}>
-              <BodyText>Payment amount</BodyText>
-              <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
-            </Flex>
-            <Flex
-              justify={'space-between'}
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await submitProposal();
+            setModalOpened(false);
+          }}>
+          <Stack align={'center'}>
+            <TbUpload color="#6200FF" size={36} />
+            <Heading3 style={{ fontWeight: '600' }}>
+              Publish Your Proposal
+            </Heading3>
+            <Subheading1>Publishing requires StarDust to be valid</Subheading1>
+            <Stack
+              spacing={'sm'}
               style={{
-                borderTop: '1px solid #DFE0EB',
-                paddingTop: '1rem',
+                borderRadius: '1rem',
+                border: '1px solid #DFE0EB',
+                padding: '1rem',
+                marginTop: '2.5rem',
+                width: '90%',
               }}>
-              <BodyText>Balance after payment</BodyText>
-              <BodyText>{props.balance - 1000}SD</BodyText>
-            </Flex>
+              <Flex justify={'space-between'}>
+                <BodyText>Stardust Balance</BodyText>
+                <BodyText>{props.balance}SD</BodyText>
+              </Flex>
+              <Flex justify={'space-between'}>
+                <BodyText>Payment amount</BodyText>
+                <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
+              </Flex>
+              <Flex
+                justify={'space-between'}
+                style={{
+                  borderTop: '1px solid #DFE0EB',
+                  paddingTop: '1rem',
+                }}>
+                <BodyText>Balance after payment</BodyText>
+                <BodyText>{props.balance - 1000}SD</BodyText>
+              </Flex>
+            </Stack>
+            <Stack style={{ width: '80%', padding: '1rem 0' }}>
+              <Subheading1>Confirm Payment</Subheading1>
+              <Checkbox
+                required
+                color="violet"
+                radius={'xl'}
+                label={
+                  <>
+                    By clicking “Vote now”, you confirm that you have read,
+                    understand, and accepted our
+                    <Anchor
+                      size="sm"
+                      href="https://mantine.dev"
+                      target="_blank"
+                      color="black"
+                      underline={true}>
+                      Terms of Use
+                    </Anchor>
+                    .
+                  </>
+                }
+              />
+            </Stack>
+            <Button style={{ width: '90%', margin: '1rem' }}>
+              <TbUpload />
+              Publish
+            </Button>
           </Stack>
-          <Stack style={{ width: '80%', padding: '1rem 0' }}>
-            <Subheading1>Confirm Payment</Subheading1>
-            <Checkbox
-              required
-              color="violet"
-              radius={'xl'}
-              label={
-                <>
-                  By clicking “Vote now”, you confirm that you have read,
-                  understand, and accepted our
-                  <Anchor
-                    size="sm"
-                    href="https://mantine.dev"
-                    target="_blank"
-                    color="black"
-                    underline={true}>
-                    Terms of Use
-                  </Anchor>
-                  .
-                </>
-              }
-            />
-          </Stack>
-          <Button
-            style={{ width: '90%', margin: '1rem' }}
-            onClick={async () => {
-              const body = createProposal();
-              const res = await api.proposal.post('/create', body);
-              setProposalId(res.message._id);
-              setModalOpened(false);
-              setPublishCompleteModal(true);
-            }}>
-            <TbUpload />
-            Publish
-          </Button>
-        </Stack>
+        </form>
       </Modal>
       <Modal
         centered={true}
@@ -272,217 +356,201 @@ const Create: NextPage<
         <TbChevronLeft size={20} />
         Back
       </UnstyledButton>
-      <Grid gutter={'sm'} style={{ padding: '1rem' }}>
-        <Grid.Col md={8} style={{ marginRight: '2rem' }}>
-          <Heading1>Create proposal</Heading1>
-          <Stack className={styles.inputContainer}>
-            <Heading3>Artist</Heading3>
-            <MultiSelect
-              placeholder="Which artist is this proposal for?"
-              itemComponent={SelectItem}
-              valueComponent={ValueItem}
-              onChange={(selectedItems) => {
-                const artistlist: Artist[] = [];
-                selectedItems.forEach((item) => {
-                  let temp = props.artists.find(
-                    (artist) => artist.name === item
-                  )!;
+      <form
+        onSubmit={form.onSubmit(async (values) => {
+          setProposalData(values);
+          setModalOpened(true);
+        })}>
+        <Grid gutter={'sm'} style={{ padding: '1rem' }}>
+          <Grid.Col md={8} style={{ marginRight: '2rem' }}>
+            <Heading1>Create proposal</Heading1>
+            {/* <pre>{JSON.stringify(form.values, null, 2)}</pre> */}
+            <Stack className={styles.inputContainer}>
+              <Heading3>Artist</Heading3>
+              <MultiSelect
+                {...form.getInputProps('artistId')}
+                placeholder="Which artist is this proposal for?"
+                itemComponent={SelectItem}
+                valueComponent={ValueItem}
+                data={props.artists.map((artist: Artist, key: number) => ({
+                  value: artist._id,
+                  name: artist.name,
+                  label: artist.companyId,
+                  image: artist.image,
+                  id: key,
+                }))}
+                searchable
+                nothingFound="Nobody here"
+                maxDropdownHeight={400}
+                filter={(value, selected, item) =>
+                  !selected &&
+                  item.label!.toLowerCase().includes(value.toLowerCase().trim())
+                }
+              />
+            </Stack>
 
-                  artistlist.push(temp);
-                });
-                setArtist(artistlist);
-                //filter sponsorlist for valid sponsors from same artist company
-              }}
-              data={props.artists.map((artist: Artist, key) => ({
-                value: artist.name,
-                label: artist.companyId,
-                image: artist.image,
-                id: key,
-              }))}
-              searchable
-              nothingFound="Nobody here"
-              maxDropdownHeight={400}
-              filter={(value, selected, item) =>
-                !selected &&
-                item.label!.toLowerCase().includes(value.toLowerCase().trim())
-              }
-            />
-          </Stack>
-          <Stack className={styles.inputContainer}>
-            <Heading3>Sponsors</Heading3>
-            <MultiSelect
-              placeholder="Type the artist name to find a related sponsor"
-              itemComponent={SelectItem}
-              valueComponent={ValueItem}
-              data={availableSponsors.map((sponsor, key) => ({
-                value: sponsor.username,
-                label: sponsor.companyId,
-                image: sponsor.profilePicture,
-                id: key,
-              }))}
-              onChange={(selectedItems) => {
-                const sponsorlist: ProposalSponsor[] = [];
-                selectedItems.forEach((item) => {
-                  let temp = availableSponsors.find(
-                    (sponsor) => sponsor.username === item
-                  )!;
-                  sponsorlist.push(temp);
-                });
-                setSponsors(sponsorlist);
-              }}
-              searchable
-              nothingFound="No Sponsors"
-              maxDropdownHeight={400}
-              filter={(value, selected, item) =>
-                !selected &&
-                item.label!.toLowerCase().includes(value.toLowerCase().trim())
-              }
-            />
-          </Stack>
-          <Stack className={styles.inputContainer}>
-            <Heading3>Title Image</Heading3>
-            <Dropzone
-              value={titleImage}
-              onDrop={(files) => setTitleImage(files[0])}
-              title="Upload title image"
-              placeholder="(max. 2160 x 1080)"
-              mt="sm"></Dropzone>
-          </Stack>
+            <Stack className={styles.inputContainer}>
+              <Heading3>Sponsors</Heading3>
+              <MultiSelect
+                placeholder="Type the artist name to find a related sponsor"
+                itemComponent={SelectItem}
+                valueComponent={ValueItem}
+                data={getSponsorlist(form.values.artistId).map(
+                  (sponsor, key) => ({
+                    value: sponsor._id,
+                    name: sponsor.username,
+                    label: sponsor.companyId,
+                    image: sponsor.profilePicture,
+                    id: key,
+                  })
+                )}
+                searchable
+                nothingFound="No Sponsors"
+                maxDropdownHeight={400}
+                filter={(value, selected, item) =>
+                  !selected &&
+                  item.label!.toLowerCase().includes(value.toLowerCase().trim())
+                }
+                {...form.getInputProps('sponsors')}
+              />
+            </Stack>
 
-          <Stack className={styles.inputContainer}>
-            <Heading3>Duration</Heading3>
-            <Flex gap="sm">
-              <DatePicker
-                style={{ width: '100%' }}
-                icon={<TbCalendar />}
-                value={startDate}
-                onChange={(date) => date && setStartDate(date)}
-                placeholder="Starting date & time"></DatePicker>
-              <DatePicker
-                style={{ width: '100%' }}
-                icon={<TbCalendar />}
-                value={endDate}
-                minDate={startDate}
-                onChange={(date) => date && setEndDate(date)}
-                placeholder="End date & time"></DatePicker>
-            </Flex>
-          </Stack>
-          <Stack className={styles.inputContainer}>
-            <Heading3>Title</Heading3>
-            <TextInput
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="What are you proposing? (Maximum 100 characters)"
-            />
-          </Stack>
-          <Stack className={styles.inputContainer}>
-            <Heading3>Description</Heading3>
-            <Textarea
-              minRows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="What are the details of your proposal?"></Textarea>
-          </Stack>
-          <Stack className={styles.inputContainer}>
-            <Heading3>Supporting Files</Heading3>
-            {supportingFiles.length === 0 ? (
-              <>
-                <Dropzone
-                  multiple
-                  maxFiles={5}
-                  value={supportingFiles && supportingFiles[0]}
-                  type={'file'}
-                  onDropAny={(files) => {
-                    setSupportingFiles([...files]);
-                  }}
-                  title="Drag & Drop maximum 5 files "
-                  placeholder="(max. 2160 x 1080)"
-                  mt="sm"></Dropzone>
-              </>
-            ) : (
-              <>
-                {supportingFiles.map((file, i) => (
-                  <Box
-                    key={i}
-                    sx={{ border: '1px solid #A1A1A1' }}
-                    style={{ borderRadius: '0.5rem' }}>
-                    <Flex
-                      className={styles.supportDocuments}
-                      justify="space-between">
-                      <Text>{file.name}</Text>
-                      <CloseButton
-                        onMouseDown={() => {
-                          setSupportingFiles((prev) => {
-                            const temp = [...prev];
-                            temp.splice(i, 1);
-                            return temp;
-                          });
-                        }}
-                        variant="transparent"
-                        size={22}
-                        iconSize={14}
-                        tabIndex={-1}
-                      />
-                    </Flex>
-                  </Box>
-                ))}
-              </>
-            )}
-          </Stack>
-        </Grid.Col>
-        <Grid.Col
-          md={3}
-          style={{
-            position: 'fixed',
-            right: '2rem',
-            top: '12rem',
-            width: '100%',
-          }}>
-          <Stack spacing={'xl'}>
-            <StatCard
-              style={{ whiteSpace: 'pre-wrap', alignContent: 'left' }}
-              description={`The more detailed your proposal is, the fewer STARDUST will be needed.\n\nPro Tip: Pick a sponsor to participate in the campaign to improve your credibility.This will help you level up faster! `}
-              data={''}
-            />
-            <Subheading1 color="purple">
-              Draft saved {'30 December, 2022 2PM'}
-            </Subheading1>
-            <Button
-              type="secondary"
-              size="md"
-              color="black"
-              onClick={async () => {
-                const body = createProposal();
-                await api.proposal.post('/create', body);
-              }}
-              style={{
-                marginLeft: 'auto',
-                marginRight: '0',
-                width: '100%',
-              }}>
-              <TbEdit />
-              Save Draft
-            </Button>
-            <Button
-              type="primary"
-              size="md"
-              color="purple"
-              onClick={async () => {
-                const body = createProposal();
-                await api.proposal.post('/submit', body);
-                setModalOpened(true);
-              }}
-              style={{
-                marginLeft: 'auto',
-                marginRight: '0',
-                width: '100%',
-              }}>
-              <TbUpload />
-              Publish
-            </Button>
-          </Stack>
-        </Grid.Col>
-      </Grid>
+            <Stack className={styles.inputContainer}>
+              <Heading3>Title Image</Heading3>
+              <Dropzone
+                onDrop={(file) => form.setFieldValue('titleImage', file[0])}
+                value={form.values.titleImage}
+                title="Upload title image"
+                placeholder="(max. 2160 x 1080)"
+                mt="sm"
+                {...form.getInputProps('titleImage')}></Dropzone>
+            </Stack>
+
+            <Stack className={styles.inputContainer}>
+              <Input.Label>
+                {<Heading3 style={{ display: 'inline' }}>Title</Heading3>}
+              </Input.Label>
+              <TextInput
+                placeholder="What are you proposing? (Maximum 100 characters)"
+                {...form.getInputProps('title')}
+              />
+            </Stack>
+            <Stack className={styles.inputContainer}>
+              <Heading3>Description</Heading3>
+              <Textarea
+                minRows={4}
+                placeholder="What are the details of your proposal?"
+                {...form.getInputProps('details')}></Textarea>
+            </Stack>
+            <Stack className={styles.inputContainer}>
+              <Heading3>Supporting Files</Heading3>
+              {!form.values.supportingMaterials ||
+              form.values.supportingMaterials.length < 1 ? (
+                <>
+                  {/* <pre>
+                    {JSON.stringify(
+                      { ...form.getInputProps('supportingMaterial') },
+                      null,
+                      2
+                    )}
+                  </pre> */}
+                  <Dropzone
+                    multiple
+                    maxFiles={5}
+                    type={'file'}
+                    title="Drag & Drop maximum 5 files "
+                    placeholder="(max. 2160 x 1080)"
+                    mt="sm"
+                    onDrop={(file) => {
+                      form.setFieldValue('supportingMaterials', file);
+                    }}
+                    {...form.getInputProps('supportingMaterials')}></Dropzone>
+                </>
+              ) : (
+                <>
+                  {form.values.supportingMaterials.map((file, i) => (
+                    <Box
+                      key={i}
+                      sx={{ border: '1px solid #A1A1A1' }}
+                      style={{ borderRadius: '0.5rem' }}>
+                      <Flex
+                        className={styles.supportDocuments}
+                        justify="space-between">
+                        <Text>{file.name}</Text>
+                        <CloseButton
+                          onMouseDown={() => {
+                            if (form.values.supportingMaterials!.length === 1) {
+                              form.setFieldValue('supportingMaterials', null);
+                            }
+                            form.removeListItem('supportingMaterials', i);
+                          }}
+                          variant="transparent"
+                          size={22}
+                          iconSize={14}
+                          tabIndex={-1}
+                        />
+                      </Flex>
+                    </Box>
+                  ))}
+                </>
+              )}
+            </Stack>
+          </Grid.Col>
+          <Grid.Col
+            md={3}
+            style={{
+              position: 'fixed',
+              right: 0,
+              top: '12rem',
+              width: '100%',
+            }}>
+            <Stack spacing={'xl'}>
+              <StatCard
+                style={{ whiteSpace: 'pre-wrap', alignContent: 'left' }}
+                description={`The more detailed your proposal is, the fewer STARDUST will be needed.\n\nPro Tip: Pick a sponsor to participate in the campaign to improve your credibility.This will help you level up faster! `}
+                data={''}
+              />
+              <Subheading1 color="purple">
+                Draft saved {'30 December, 2022 2PM'}
+              </Subheading1>
+              <Button
+                type="secondary"
+                // disabled={form.values.title ? false : true}
+                size="md"
+                color="black"
+                style={{
+                  marginLeft: 'auto',
+                  marginRight: '0',
+                  width: '100%',
+                }}
+                onClick={() => {
+                  form.setFieldValue('proposalType', 'draft');
+                }}>
+                <TbEdit />
+                Save Draft
+              </Button>
+              <Button
+                type="primary"
+                size="md"
+                color="purple"
+                disabled={!(form.isTouched() && form.isValid())}
+                // disabled={form.isValid() ? false : true}
+                onClick={async () => {
+                  form.setFieldValue('proposalType', 'publish');
+                  setModalOpened(true);
+                }}
+                style={{
+                  marginLeft: 'auto',
+                  marginRight: '0',
+                  width: '100%',
+                }}>
+                <TbUpload />
+                Publish
+              </Button>
+            </Stack>
+          </Grid.Col>
+        </Grid>
+      </form>
       <UnstyledButton
         style={{
           margin: 'auto',
@@ -515,7 +583,6 @@ export const getServerSideProps: GetServerSideProps<{
   });
   return {
     props: {
-      // get sponsors and artists list
       artists,
       balance,
       sponsors: sponsorRes.message.sponsors,

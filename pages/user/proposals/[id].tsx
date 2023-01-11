@@ -368,7 +368,7 @@ const Proposal: NextPage<
                 }}>
                 Comment
               </Button>
-              {sortedComments.map((comment) => (
+              {sortedComments.map((comment, key) => (
                 <Stack spacing={'sm'} style={{ marginBottom: '1rem' }}>
                   <Flex align={'center'} gap="sm">
                     <img
@@ -435,6 +435,7 @@ const Proposal: NextPage<
                         <img
                           className={styles.avatarImage}
                           src={'/Comment-avatar-1.png'}
+                          key={index}
                         />
                       ))}
                       <UnstyledButton
