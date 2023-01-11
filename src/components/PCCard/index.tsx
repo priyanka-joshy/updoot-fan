@@ -55,7 +55,7 @@ const PCCard = ({
               query: { draftId: props._id },
             });
       }}>
-      {props.titleImage ? (
+      {!props.titleImage ? (
         <img src="/authPageLogo.svg" className={styles.image} />
       ) : (
         <img src={props.titleImage} className={styles.image} />
