@@ -18,6 +18,10 @@ interface PCBase {
   titleImage?: string;
   votes?: number;
   walletAddress?: string;
+  approvalRate: number;
+  approvedSponsors: number;
+  countDown: number;
+  collectedSD: number;
 }
 
 export interface Artist {
@@ -51,6 +55,7 @@ export interface Comment {
   typeId: string;
   username: string;
   createdAt: string;
+  user: User[];
 }
 
 export interface Like {

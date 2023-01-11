@@ -1,9 +1,11 @@
 import { Subheading2 } from '@components/typography';
-import { Flex, FlexProps } from '@mantine/core';
+import { Flex } from '@mantine/core';
 import styles from './styles.module.scss';
-interface badgeProps extends FlexProps {
+
+interface badgeProps {
   profilePicture: string;
   username?: string;
+  // role: 'Fan' | 'Staff' | 'Manager' | 'Sponsor';
   role: 'Fan' | 'Staff' | 'Manager';
 }
 const UserBadge = (props: badgeProps) => {
@@ -18,8 +20,9 @@ const UserBadge = (props: badgeProps) => {
         {
           {
             Fan: <img src={'/General.png'} className={styles.badge} />,
-            Manager: <img src={'/Sponsor.png'} className={styles.badge} />,
+            // Sponsor: <img src={'/Sponsor.png'} className={styles.badge} />,
             Staff: <img src={'/Business.png'} className={styles.badge} />,
+            Manager: <img src={'/Business.png'} className={styles.badge} />,
           }[props.role]
         }
       </div>

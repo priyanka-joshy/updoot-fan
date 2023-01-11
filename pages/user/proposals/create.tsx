@@ -8,6 +8,7 @@ import {
   Grid,
   Group,
   Input,
+  Loader,
   Modal,
   MultiSelect,
   MultiSelectValueProps,
@@ -26,16 +27,30 @@ import {
 } from 'next';
 import { useRouter } from 'next/router';
 
-import { forwardRef, useEffect, useState } from 'react';
+import {
+  Dispatch,
+  forwardRef,
+  ReactNode,
+  SetStateAction,
+  useEffect,
+  useState,
+} from 'react';
 import api from 'src/utils/api';
 import styles from 'styles/user/proposals/create.module.scss';
 
-import { TbChevronLeft, TbChevronUp, TbEdit, TbUpload } from 'react-icons/tb';
+import {
+  TbChevronLeft,
+  TbChevronUp,
+  TbCircleCheck,
+  TbEdit,
+  TbUpload,
+} from 'react-icons/tb';
 import {
   BodyText,
   Heading1,
   Heading3,
   Subheading1,
+  Subheading2,
 } from '@components/typography';
 import Button from '@components/button';
 import StatCard from '@components/statCard';
@@ -48,16 +63,200 @@ import { uploadFile } from 'src/utils/storage';
 import { withSSRContext } from 'aws-amplify';
 import getWalletBalance from 'src/utils/getWalletBalance';
 
+type ModalTypes =
+  | 'saving'
+  | 'publishing'
+  | 'successfulDraft'
+  | 'successfulPublish';
+
+interface ItemProps extends React.ComponentPropsWithoutRef<'div'> {
+  image: string;
+  label: string;
+  value: string;
+  name: string;
+}
+
+interface CreateProposalFormData {
+  title: string;
+  details: string;
+  companyId: string;
+  artistId: string[];
+  supportingMaterials: File[] | null;
+  brand: string;
+  sponsors: ProposalSponsor[];
+  author: string;
+  titleImage: FileWithPath | null;
+  proposalType: string;
+}
+
+interface IModalProps {
+  modalOpened: boolean;
+  setModalOpened: Dispatch<SetStateAction<boolean>>;
+  sticky: boolean;
+  children: ReactNode;
+}
+
+interface ModalData {
+  icon: JSX.Element;
+  text: string;
+  btnText?: string;
+  onClick?: () => void;
+  subText?: string;
+}
+
+const SelectItem = forwardRef<HTMLDivElement, ItemProps>(
+  ({ image, label, value, name, ...others }: ItemProps, ref) => (
+    <div ref={ref} {...others}>
+      <div className={styles.selectItem}>
+        <Group noWrap>
+          <Avatar src={image} />
+          <div>
+            <Text>
+              {name} ({label})
+            </Text>
+          </div>
+        </Group>
+      </div>
+    </div>
+  )
+);
+
+function ValueItem({
+  value,
+  label,
+  name,
+  image,
+  onRemove,
+  classNames,
+  ...others
+}: MultiSelectValueProps & {
+  value: string;
+  image: string;
+  name: string;
+}) {
+  return (
+    <div {...others}>
+      <Box
+        sx={{
+          display: 'flex',
+          cursor: 'default',
+          alignItems: 'center',
+          paddingLeft: 10,
+          borderRadius: 4,
+          border: '1px solid black',
+          margin: '0.2rem',
+        }}>
+        <Avatar className={styles.logo} src={image} />
+
+        <Box sx={{ lineHeight: 1, fontSize: 12 }}>
+          {name}({label})
+        </Box>
+        <CloseButton
+          onMouseDown={onRemove}
+          variant="transparent"
+          size={22}
+          iconSize={14}
+          tabIndex={-1}
+        />
+      </Box>
+    </div>
+  );
+}
+
+const MessageModal = ({
+  modalOpened,
+  setModalOpened,
+  sticky,
+  children,
+}: IModalProps) => {
+  return (
+    <Modal
+      centered={true}
+      radius={'xl'}
+      opened={modalOpened}
+      onClose={() => setModalOpened(false)}
+      size={'30%'}
+      withCloseButton={sticky}
+      closeOnClickOutside={sticky}
+      closeOnEscape={sticky}>
+      <Stack
+        align={'center'}
+        justify="center"
+        mih={'34rem'}
+        w={'75%'}
+        ta="center"
+        mx={'auto'}>
+        {children}
+      </Stack>
+    </Modal>
+  );
+};
+
 const Create: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = (props) => {
   const { user: author } = useAuth();
   const [proposalId, setProposalId] = useState('');
   const [modalOpened, setModalOpened] = useState(false);
-  const [publishCompleteModal, setPublishCompleteModal] = useState(false);
   const [proposalData, setProposalData] = useState<CreateProposalFormData>();
+  const [draftProposalData, setDraftProposalData] =
+    useState<CreateProposalFormData>();
+  const [msgModal, setMsgModal] = useState(false);
+  const [status, setStatus] = useState<ModalTypes>();
   const router = useRouter();
 
+  useEffect(() => {
+    //get proposal draft data
+    // if (!router.isReady) {
+    //   return;
+    // }
+    // let draftId = router.query.draftId;
+    // if (draftId) {
+    const fetchDraft = async () => {
+      const { message: draftProposal } = await api.proposal.get(
+        '/63bbdb5a1e3a8708a6affe22'
+        // `/${draftId}`
+      );
+      setDraftProposalData(draftProposal);
+      console.log(draftProposal);
+      // console.log(getArtistFromArtistId(draftProposal.artistId));
+    };
+
+    console.log('fetching');
+    fetchDraft();
+    // }
+  }, []);
+
+  const modalData: Record<ModalTypes, ModalData> = {
+    saving: {
+      icon: <Loader color="#9653f8" />,
+      text: 'Saving Draft',
+    },
+    publishing: {
+      icon: <Loader color="#9653f8" />,
+      text: 'Publishing Proposal',
+    },
+    successfulPublish: {
+      icon: <TbCircleCheck color="#6200FF" size={36} />,
+      text: 'Proposal has been Published',
+      btnText: 'View Proposal',
+      onClick: () => {
+        router.replace(`/user/proposals/${proposalId}`);
+      },
+    },
+    successfulDraft: {
+      icon: <TbCircleCheck color="#6200FF" size={36} />,
+      text: 'Proposal Draft has been Created',
+    },
+  };
+  const getArtistFromArtistId = (artists: string[]) => {
+    const artistlist: Artist[] = [];
+    artists.forEach((item) => {
+      let temp = props.artists.find((artist: Artist) => artist._id === item)!;
+      artistlist.push(temp);
+    });
+    return artistlist;
+  };
   const getArtistCompany = (artists: string[]) => {
     const artistlist: Artist[] = [];
     artists.forEach((item) => {
@@ -96,73 +295,11 @@ const Create: NextPage<
     return result;
   };
 
-  interface ItemProps extends React.ComponentPropsWithoutRef<'div'> {
-    image: string;
-    label: string;
-    value: string;
-    name: string;
-  }
-
-  const SelectItem = forwardRef<HTMLDivElement, ItemProps>(
-    ({ image, label, value, name, ...others }: ItemProps, ref) => (
-      <div ref={ref} {...others}>
-        <div className={styles.selectItem}>
-          <Group noWrap>
-            <Avatar src={image} />
-            <div>
-              <Text>
-                {name} ({label})
-              </Text>
-            </div>
-          </Group>
-        </div>
-      </div>
-    )
-  );
-
-  function ValueItem({
-    value,
-    label,
-    name,
-    image,
-    onRemove,
-    classNames,
-    ...others
-  }: MultiSelectValueProps & {
-    value: string;
-    image: string;
-    name: string;
-  }) {
-    return (
-      <div {...others}>
-        <Box
-          sx={{
-            display: 'flex',
-            cursor: 'default',
-            alignItems: 'center',
-            paddingLeft: 10,
-            borderRadius: 4,
-            border: '1px solid black',
-            margin: '0.2rem',
-          }}>
-          <Avatar className={styles.logo} src={image} />
-
-          <Box sx={{ lineHeight: 1, fontSize: 12 }}>
-            {name}({label})
-          </Box>
-          <CloseButton
-            onMouseDown={onRemove}
-            variant="transparent"
-            size={22}
-            iconSize={14}
-            tabIndex={-1}
-          />
-        </Box>
-      </div>
-    );
-  }
-
   const submitProposal = async () => {
+    // set loading modals
+    setStatus('publishing');
+    setMsgModal(true);
+
     // upload title image to S3 Bucket
     if (!proposalData) {
       return;
@@ -205,20 +342,8 @@ const Create: NextPage<
 
     const res = await api.proposal.post('/submit', body);
     setProposalId(res.message.proposalId);
-    setPublishCompleteModal(true);
+    setStatus('successfulPublish');
   };
-  interface CreateProposalFormData {
-    title: string;
-    details: string;
-    companyId: string;
-    artistId: string[];
-    supportingMaterials: File[] | null;
-    brand: string;
-    sponsors: ProposalSponsor[];
-    author: string;
-    titleImage: FileWithPath | null;
-    proposalType: string;
-  }
 
   const form = useForm<CreateProposalFormData>({
     validateInputOnBlur: true,
@@ -239,15 +364,25 @@ const Create: NextPage<
       title: (value) => (value ? null : 'Title is required'),
       details: (value) => (value ? null : 'Description is required'),
       artistId: (value) =>
-        value.length > 0 ? null : 'please select at least one artist',
+        value.length > 0 ? null : 'Please select at least one artist',
       sponsors: (value) =>
-        value.length > 0 ? null : 'please select at least one sponsor',
-      titleImage: (value) => (value ? null : 'please upload a title image'),
+        value.length > 0 ? null : 'Please select at least one sponsor',
+      titleImage: (value) => (value ? null : 'Please upload a title image'),
+    },
+  });
+
+  const draftForm = useForm<Partial<CreateProposalFormData>>({
+    validateInputOnBlur: true,
+    initialValues: { ...draftProposalData! },
+
+    validate: {
+      title: (value) => (value ? null : 'Title is required'),
     },
   });
 
   return (
     <div>
+      {/* Submission Form Modal */}
       <Modal
         centered={true}
         radius={'xl'}
@@ -280,7 +415,7 @@ const Create: NextPage<
               </Flex>
               <Flex justify={'space-between'}>
                 <BodyText>Payment amount</BodyText>
-                <BodyText style={{ fontWeight: '700' }}>{-1000}SD</BodyText>
+                <BodyText style={{ fontWeight: '700' }}>{-200}SD</BodyText>
               </Flex>
               <Flex
                 justify={'space-between'}
@@ -289,7 +424,7 @@ const Create: NextPage<
                   paddingTop: '1rem',
                 }}>
                 <BodyText>Balance after payment</BodyText>
-                <BodyText>{props.balance - 1000}SD</BodyText>
+                <BodyText>{props.balance - 200}SD</BodyText>
               </Flex>
             </Stack>
             <Stack style={{ width: '80%', padding: '1rem 0' }}>
@@ -315,34 +450,40 @@ const Create: NextPage<
                 }
               />
             </Stack>
-            <Button style={{ width: '90%', margin: '1rem' }}>
+            <Button
+              style={{ width: '90%', margin: '1rem' }}
+              disabled={!form.isValid()}>
               <TbUpload />
               Publish
             </Button>
           </Stack>
         </form>
       </Modal>
-      <Modal
-        centered={true}
-        radius={'xl'}
-        opened={publishCompleteModal}
-        onClose={() => setPublishCompleteModal(false)}>
-        <Stack align={'center'}>
-          <TbUpload color="#6200FF" size={36} />
-          <Heading3 style={{ fontWeight: '600' }}>
-            Your Proposal is Published
-          </Heading3>
 
-          <Button
-            style={{ width: '90%', margin: '1rem' }}
-            onClick={() => {
-              router.replace(`/user/proposals/${proposalId}`);
-            }}>
-            <TbUpload />
-            View Proposal
-          </Button>
-        </Stack>
-      </Modal>
+      {status && (
+        <MessageModal
+          modalOpened={msgModal}
+          setModalOpened={setMsgModal}
+          sticky={true}>
+          {modalData[status].icon}
+          <Heading1 style={{ marginBottom: 50, textAlign: 'center' }}>
+            {modalData[status].text}
+          </Heading1>
+          <Subheading2 style={{ textAlign: 'center' }}>
+            {modalData[status].subText}
+          </Subheading2>
+          {modalData[status].btnText && modalData[status].onClick && (
+            <Button
+              type="primary"
+              color="purple"
+              style={{ width: 215 }}
+              onClick={modalData[status].onClick}>
+              {modalData[status].btnText}
+            </Button>
+          )}
+        </MessageModal>
+      )}
+
       <UnstyledButton
         style={{
           marginRight: 'auto',
@@ -364,6 +505,7 @@ const Create: NextPage<
         <Grid gutter={'sm'} style={{ padding: '1rem' }}>
           <Grid.Col md={8} style={{ marginRight: '2rem' }}>
             <Heading1>Create proposal</Heading1>
+            <pre>{JSON.stringify(form.values, null, 2)}</pre>
             {/* <pre>{JSON.stringify(form.values, null, 2)}</pre> */}
             <Stack className={styles.inputContainer}>
               <Heading3>Artist</Heading3>
@@ -372,6 +514,8 @@ const Create: NextPage<
                 placeholder="Which artist is this proposal for?"
                 itemComponent={SelectItem}
                 valueComponent={ValueItem}
+                defaultValue={['63bbc42e5e4c03e1478645bb']}
+                // remap artist data array
                 data={props.artists.map((artist: Artist, key: number) => ({
                   value: artist._id,
                   name: artist.name,

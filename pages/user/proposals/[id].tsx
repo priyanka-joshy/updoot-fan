@@ -35,18 +35,14 @@ import styles from 'styles/user/proposals/index.module.scss';
 import { withSSRContext } from 'aws-amplify';
 
 import StatCard from '@components/statCard';
-import {
-  BodyText,
-  Heading3,
-  Subheading1,
-  Subheading2,
-} from '@components/typography';
+import { BodyText, Heading3, Subheading1 } from '@components/typography';
 import Button from '@components/button';
 import { Proposal, Comment, User } from 'src/utils/types';
 import api from 'src/utils/api';
-import { getProfilePicture } from 'src/utils/storage';
+import { getProfilePicture, getUploadedFile } from 'src/utils/storage';
 import getWalletBalance from 'src/utils/getWalletBalance';
 import UserBadge from '@components/userBadge';
+import { VOTE_COST } from 'src/utils/constants';
 
 interface Params extends ParsedUrlQuery {
   id: string;
@@ -89,15 +85,23 @@ const Proposal: NextPage<
     //format datestring per specs
     let dateString = '';
     if (days > 0) {
-      dateString = `${days ? `${days}days` : ''} ago`;
+      dateString = `${days ? `${days} days` : ''} ago`;
     } else if (hours > 0) {
-      dateString = `${hours ? `${hours}hours` : ''} ago`;
+      dateString = `${hours ? `${hours} hours` : ''} ago`;
+    } else if (minutes > 10) {
+      dateString = `${minutes ? `${minutes} minutes` : ''} ago`;
     } else {
-      dateString = `${minutes ? `${minutes}minutes` : ''} ago`;
+      dateString = `just now`;
     }
 
     return dateString;
   };
+
+  const getDaysLeft = (countdown: EpochTimeStamp) => {
+    Math.abs(new Date().valueOf() - new Date(countdown).valueOf()) /
+      (24 * 60 * 60 * 1000);
+  };
+
   return (
     <div>
       <Modal
@@ -272,13 +276,13 @@ const Proposal: NextPage<
               <TbChevronLeft size={20} />
               Back
             </UnstyledButton>
-            <img
-              style={{ height: '15rem', width: '100%', borderRadius: '10px' }}
-              src={'/temp5.png'}
-            />
+            <img className={styles.titleImage} src={'/temp5.png'} />
+            {console.log(props.titleImage)}
             <Flex justify={'space-between'}>
               <Subheading1>Proposals</Subheading1>
-              <Subheading1 color="#A1A1A1">Ends in 3 Days</Subheading1>
+              <Subheading1 color="#A1A1A1">
+                Ends in {props.countDown}
+              </Subheading1>
             </Flex>
             <Title order={2}>{props.title}</Title>
             <BodyText
@@ -375,11 +379,15 @@ const Proposal: NextPage<
                   style={{ marginBottom: '1rem' }}
                   key={key}>
                   <Flex align={'center'} gap="sm">
-                    <img
-                      className={styles.avatarImage}
-                      src={'/authPageLogo.svg'}
+                    <UserBadge
+                      profilePicture={
+                        comment.user[0].profilePicture
+                          ? comment.user[0].profilePicture
+                          : '/emptyPhoto.png'
+                      }
+                      role={comment.user[0].role}
+                      username={comment.user[0].username!}
                     />
-                    <Subheading2>{comment.username}</Subheading2>
                     <BodyText color="#CCCCCC">
                       {getDateDifferenceHours(comment.createdAt)}
                     </BodyText>
@@ -398,14 +406,14 @@ const Proposal: NextPage<
               <Grid grow gutter="sm">
                 <Grid.Col span={6}>
                   <StatCard
-                    data={(props.votes ?? 0) * props.costPerVote}
+                    data={(props.votes ?? 0) * VOTE_COST}
                     description="Collected Stardust"
                     icon={<WiStars size={36} color="#6200FF" />}
                   />
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <StatCard
-                    data={'67%'}
+                    data={`${props.approvalRate}%`}
                     description="Approval Rate"
                     color="#F0F0F0"
                     icon={<BiLike size={36} color="#6200FF" />}
@@ -420,9 +428,10 @@ const Proposal: NextPage<
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <StatCard
+                    // data={`D-${getDaysLeft(props.countDown)}`}
                     data={'D-3'}
                     description={`${getDateDifference(
-                      props.endTime ?? 1671069695
+                      props.countDown ?? 1671069695
                     )} left to vote`}
                     icon={<BiTimeFive size={36} color="#6200FF" />}
                   />
@@ -461,6 +470,15 @@ const Proposal: NextPage<
               </Grid>
 
               <Stack style={{ paddingTop: '2rem' }} spacing="lg">
+                <Button
+                  size="lg"
+                  style={{
+                    width: '100%',
+                    marginTop: '2rem',
+                  }}
+                  onClick={() => setModalOpened(true)}>
+                  <TbHandStop /> Vote Now
+                </Button>
                 <div
                   style={{
                     display: 'grid',
@@ -496,15 +514,6 @@ const Proposal: NextPage<
                     Share
                   </Button>
                 </div>
-                <Button
-                  size="lg"
-                  style={{
-                    width: '100%',
-                    marginTop: '2rem',
-                  }}
-                  onClick={() => setModalOpened(true)}>
-                  <TbHandStop /> Vote Now
-                </Button>
               </Stack>
             </Stack>
           </Stack>
@@ -548,10 +557,15 @@ export const getServerSideProps: GetServerSideProps<
   const commentsRes = await api.proposal.get(`/comments/${id}`);
   // get profile picture from s3 bucket
   const currentProfilePhoto = await getProfilePicture(user.profilePicture);
+  let titleImage = await getUploadedFile(proposal.titleImage);
+  if (!titleImage) {
+    titleImage = '/temp5.png';
+  }
   return {
     props: {
       ...proposal.message,
       balance,
+      titleImage,
       user,
       username: name,
       profilePicture: currentProfilePhoto,
