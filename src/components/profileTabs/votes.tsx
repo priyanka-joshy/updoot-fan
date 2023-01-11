@@ -72,7 +72,15 @@ export const UserVotes = () => {
   return (
     <>
       {votesData.length > 0 ? (
-        votesData.map((voteData) => voteData && <VoteRow {...voteData} />)
+        votesData.map(
+          (voteData) =>
+            voteData && (
+              <VoteRow
+                {...voteData}
+                key={voteData.title + '-' + voteData.timestamp}
+              />
+            )
+        )
       ) : (
         <Flex justify="center">
           <EmptyState

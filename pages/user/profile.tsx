@@ -17,11 +17,12 @@ import {
 import PCCard from '@components/PCCard';
 import Button from '@components/button';
 import api from 'src/utils/api';
-import { Campaign, Comment, Proposal, User } from 'src/utils/types';
+import { Campaign, Comment, Like, Proposal, User } from 'src/utils/types';
 import { withSSRContext } from 'aws-amplify';
-import { getProfilePicture } from 'src/utils/storage';
+import { getProfilePicture, getUploadedFile } from 'src/utils/storage';
 import getWalletBalance from 'src/utils/getWalletBalance';
 import { UserVotes } from '@components/profileTabs/votes';
+import CommentRow from '@components/commentRow';
 
 const Profile: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -139,11 +140,13 @@ const Profile: NextPage<
         </Tabs.Panel>
         <Tabs.Panel value="comments" pt="xs">
           {props.comments.length > 0 ? (
-            <>
-              {props.comments.map((a) => (
-                <Heading1>{a.content}</Heading1>
-              ))}
-            </>
+            props.comments.map((a) => (
+              <CommentRow
+                content={a.content}
+                timestamp={a.createdAt}
+                status={a.approval.status}
+              />
+            ))
           ) : (
             <Flex justify="center">
               <EmptyState
@@ -157,17 +160,24 @@ const Profile: NextPage<
           <UserVotes />
         </Tabs.Panel>
         <Tabs.Panel value="likes" pt="xs">
-          {props.likes.length > 0 ? (
-            props.likes.map((proposal) => <PCCard {...proposal} isProposal />)
-          ) : (
-            <Flex justify="center">
-              <EmptyState
-                title="No likes yet."
-                text="Support ideas and engage with the community by liking
+          <Flex
+            gap="xl"
+            wrap="wrap"
+            justify={props.likes.length === 0 ? 'center' : undefined}>
+            {props.likes.length > 0 ? (
+              props.likes.map((proposal) => {
+                return <PCCard {...proposal} isProposal />;
+              })
+            ) : (
+              <Flex justify="center">
+                <EmptyState
+                  title="No likes yet."
+                  text="Support ideas and engage with the community by liking
                   proposals"
-              />
-            </Flex>
-          )}
+                />
+              </Flex>
+            )}
+          </Flex>
         </Tabs.Panel>
         <Tabs.Panel value="bookmarks" pt="xs">
           <Flex
@@ -208,7 +218,7 @@ export const getServerSideProps: GetServerSideProps<{
   balance: number;
   bookmarks: { campaignBookmarks: Campaign[]; proposalBookmarks: Proposal[] };
   comments: Comment[];
-  likes: any[];
+  likes: Proposal[];
   drafts: Proposal[];
   proposals: Proposal[];
   user: User;
@@ -221,13 +231,28 @@ export const getServerSideProps: GetServerSideProps<{
   const balance = await getWalletBalance(user.walletAddress);
   const bookmarkRes = await api.user.get(`/bookmark/${email}`);
   const commentRes = await api.comment.get(`/getByUsername/${name}`);
-  const { message: likes } = await api.user.get(`/like/getAllLikes/${email}`);
-  const proposalRes = await api.proposal.get(`/user/${email}`);
+  const { message: likesRes }: { message: { likes: Like[] } } =
+    await api.user.get(`/like/getAllLikes/${name}`);
+  const proposalRes: { message: { proposalList: Proposal[] } } =
+    await api.proposal.get(`/user/${email}`);
+
+  const proposals: Proposal[] = await Promise.all(
+    proposalRes.message.proposalList.map(async (proposal) => {
+      const urlRes =
+        proposal.titleImage && (await getUploadedFile(proposal.titleImage));
+      const imageURL = !urlRes || urlRes instanceof Error ? '' : urlRes;
+      return { ...proposal, titleImage: imageURL };
+    })
+  );
+
   const proposalBookmarks: Proposal[] = [];
   for (const proposalId of bookmarkRes.message.bookmark?.proposalBookmarks ??
     []) {
     const { message: proposal } = await api.proposal.get(`/${proposalId}`);
-    proposalBookmarks.push(proposal);
+    const urlRes =
+      proposal.titleImage && (await getUploadedFile(proposal.titleImage));
+    const imageURL = !urlRes || urlRes instanceof Error ? '' : urlRes;
+    proposalBookmarks.push({ ...proposal, titleImage: imageURL });
   }
   const campaignBookmarks: Campaign[] = [];
   for (const campaignId of bookmarkRes.message.bookmark?.campaignBookmarks ??
@@ -238,14 +263,27 @@ export const getServerSideProps: GetServerSideProps<{
   const { message: drafts } = await api.proposal.get(`/userDrafts/${email}`);
 
   const currentProfilePhoto = await getProfilePicture(user.profilePicture);
+  // Likes Tab
+  const proposalLikes = await Promise.all(
+    likesRes.likes.map(async (userLike) => {
+      const { message: proposal }: { message: Proposal } =
+        await api.proposal.get(`/${userLike.typeId}`);
+
+      const urlRes =
+        proposal.titleImage && (await getUploadedFile(proposal.titleImage));
+      const imageURL = !urlRes || urlRes instanceof Error ? '' : urlRes;
+      return { ...proposal, titleImage: imageURL };
+    })
+  );
+
   return {
     props: {
       balance,
       bookmarks: { proposalBookmarks, campaignBookmarks },
       comments: commentRes.message.comment,
-      likes: likes,
+      likes: proposalLikes,
       profilePicture: currentProfilePhoto,
-      proposals: proposalRes.message?.proposalList ?? [],
+      proposals: proposals,
       drafts: drafts.proposalList,
       user,
     },

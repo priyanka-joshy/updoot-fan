@@ -51,11 +51,14 @@ export interface Comment {
   typeId: string;
   username: string;
   createdAt: string;
+  approval: {
+    status: 'Approval' | 'Pending' | 'Rejected';
+  };
 }
 
 export interface Like {
   type: string;
-  typeid: string;
+  typeId: string;
   username: string;
   timestamp: number;
 }
